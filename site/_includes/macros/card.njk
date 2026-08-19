@@ -1,0 +1,17 @@
+{% macro cardRicetta(r) %}
+<a class="card" href="/ricette/{{ r.id }}/" data-id="{{ r.id }}">
+  <div class="card-cover {{ 'is-empty' if not r.immagine_copertina }}">
+    <span class="card-difficulty">{{ r.difficolta | capitalize }}</span>
+  </div>
+  <div class="card-body">
+    <h3 class="card-title">{{ r.titolo }}</h3>
+    <div class="card-tags">
+      {% for tag in r.categorie | slice(0, 3) %}<span class="tag">{{ tag }}</span>{% endfor %}
+    </div>
+    <div class="card-meta">
+      <span>⏱ {{ (r.tempo_preparazione_min + r.tempo_cottura_min) | formatTempo }}</span>
+      <span>🍽 {{ r.porzioni_base }} porz.{{ " · fissa" if r.scalabile == false }}</span>
+    </div>
+  </div>
+</a>
+{% endmacro %}

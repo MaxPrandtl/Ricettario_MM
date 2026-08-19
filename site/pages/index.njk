@@ -1,0 +1,72 @@
+---
+layout: layouts/base.njk
+title: "Ricettario"
+permalink: "/"
+---
+{% from "macros/card.njk" import cardRicetta %}
+
+{% block content %}
+<div class="intro">
+  <p class="kicker">Ricettario di famiglia</p>
+  <h1>Tutte le ricette</h1>
+  <p>Cerca per titolo, tag o ingrediente, oppure filtra per categoria, difficoltà, tempo o strumenti richiesti.</p>
+</div>
+
+<div class="search-row">
+  <input type="search" id="search-box" class="search-box" placeholder="🔍 Cerca per titolo, tag o ingrediente…" aria-label="Cerca ricetta">
+
+  <details class="filter-pill">
+    <summary>Categoria ▾</summary>
+    <div class="filter-panel">
+      {% for gruppo, valori in tagsCanonici %}
+        {% for tag in valori %}
+          <label><input type="checkbox" name="categoria" value="{{ tag }}"> {{ tag }}</label>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </details>
+
+  <details class="filter-pill">
+    <summary>Difficoltà ▾</summary>
+    <div class="filter-panel">
+      <label><input type="checkbox" name="difficolta" value="facile"> Facile</label>
+      <label><input type="checkbox" name="difficolta" value="medio"> Medio</label>
+      <label><input type="checkbox" name="difficolta" value="difficile"> Difficile</label>
+    </div>
+  </details>
+
+  <details class="filter-pill">
+    <summary>Tempo ▾</summary>
+    <div class="filter-panel">
+      <label><input type="radio" name="tempo" value="15"> Fino a 15 min</label>
+      <label><input type="radio" name="tempo" value="30"> Fino a 30 min</label>
+      <label><input type="radio" name="tempo" value="60"> Fino a 1 h</label>
+      <label><input type="radio" name="tempo" value="" checked> Qualsiasi</label>
+    </div>
+  </details>
+
+  <details class="filter-pill">
+    <summary>Strumenti ▾</summary>
+    <div class="filter-panel">
+      {% for gruppo, valori in strumentiCanonici %}
+        {% for s in valori %}
+          <label><input type="checkbox" name="strumento-escludi" value="{{ s }}"> Senza {{ s }}</label>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </details>
+</div>
+
+<div class="grid" id="recipe-grid">
+  {% for ricetta in ricette %}
+    {{ cardRicetta(ricetta.data) }}
+  {% endfor %}
+</div>
+
+<p class="no-results" id="no-results" hidden>Nessuna ricetta trovata con questi filtri.</p>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/assets/js/search.js" defer></script>
+{% endblock %}

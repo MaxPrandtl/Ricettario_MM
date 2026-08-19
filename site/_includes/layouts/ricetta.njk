@@ -1,0 +1,64 @@
+{% extends "layouts/base.njk" %}
+
+{% set pageClass = "page--ricetta" %}
+
+{% block content %}
+
+<div class="hero">
+  <p class="kicker">{{ ricetta.data.categorie | slice(0, 2) | join(" · ") }}</p>
+  <h1>{{ ricetta.data.titolo }}</h1>
+  <div class="tags">
+    {% for tag in ricetta.data.categorie %}<span class="tag">{{ tag }}</span>{% endfor %}
+  </div>
+
+  {% include "partials/stat-row.njk" %}
+</div>
+
+{% if ricetta.data.strumenti and ricetta.data.strumenti.length %}
+  {% include "partials/strumenti.njk" %}
+{% endif %}
+
+{% if ricetta.data.video %}
+  <a class="video-link" href="{{ ricetta.data.video }}" target="_blank" rel="noopener">▶ Guarda il video della preparazione</a>
+{% endif %}
+
+{% if ricetta.data.immagine_copertina %}
+  <img class="cover" src="{{ ricetta.data.immagine_copertina }}" alt="{{ ricetta.data.titolo }}">
+{% else %}
+  <p class="cover-missing">Nessuna foto di copertina per questa ricetta — campo facoltativo.</p>
+{% endif %}
+
+{% if ricetta.data.racconto %}
+<section>
+  <h2>Il racconto</h2>
+  <p class="racconto">{{ ricetta.data.racconto }}</p>
+</section>
+{% endif %}
+
+<section>
+  <h2>Ingredienti</h2>
+  {% include "partials/ingredienti.njk" %}
+</section>
+
+<section>
+  <h2>Procedimento</h2>
+  {% include "partials/procedimento.njk" %}
+</section>
+
+<section>
+  <h2>Note</h2>
+  <div class="note">
+    {{ ricetta.corpoHtml | safe }}
+  </div>
+</section>
+
+<footer>
+  <span>{{ ricetta.data.autore }} · {{ ricetta.data.data_inserimento }}</span>
+  <span>Ricettario di famiglia</span>
+</footer>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/assets/js/scaling.js" defer></script>
+{% endblock %}

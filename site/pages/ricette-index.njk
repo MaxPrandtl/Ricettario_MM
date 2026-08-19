@@ -1,0 +1,18 @@
+---
+permalink: "/ricette-index.json"
+eleventyExcludeFromCollections: true
+---
+[
+{%- for ricetta in ricette -%}
+  {
+    "id": {{ ricetta.data.id | json | safe }},
+    "titolo": {{ ricetta.data.titolo | json | safe }},
+    "url": {{ ("/ricette/" + ricetta.data.id + "/") | json | safe }},
+    "categorie": {{ ricetta.data.categorie | json | safe }},
+    "difficolta": {{ ricetta.data.difficolta | json | safe }},
+    "tempo_totale_min": {{ ricetta.data.tempo_preparazione_min + ricetta.data.tempo_cottura_min }},
+    "strumenti": {{ ricetta.data.strumenti | json | safe }},
+    "ingredienti": {{ ricetta.data.ingredienti | nomiIngredienti | json | safe }}
+  }{% if not loop.last %},{% endif %}
+{%- endfor -%}
+]

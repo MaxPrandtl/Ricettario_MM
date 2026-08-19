@@ -1,0 +1,36 @@
+{% if ricetta.data.scalabile == false %}
+  <div class="scalabilita-nota">
+    <span title="Ricetta non scalabile">📏</span>
+    <span><strong>Dosi fisse per questa ricetta.</strong> {{ ricetta.data.nota_scalabilita }}</span>
+  </div>
+  <ul class="ingredienti">
+    {% for ing in ricetta.data.ingredienti %}
+      <li>
+        <span>{{ ing.nome }}</span>
+        <span class="qty">{{ ing.quantita if ing.quantita != null else "q.b." }} {{ "" if ing.quantita == null else ing.unita }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div data-ricetta-scalabile data-porzioni-base="{{ ricetta.data.porzioni_base }}">
+    <div class="servings-toggle">
+      per
+      <span class="pill-group">
+        <button type="button" data-servings="1" aria-current="{{ 'true' if ricetta.data.porzioni_base == 1 else 'false' }}">1</button>
+        <button type="button" data-servings="2" aria-current="{{ 'true' if ricetta.data.porzioni_base == 2 else 'false' }}">2</button>
+        <button type="button" data-servings="4" aria-current="{{ 'true' if ricetta.data.porzioni_base == 4 else 'false' }}">4</button>
+        <button type="button" data-servings="6" aria-current="{{ 'true' if ricetta.data.porzioni_base == 6 else 'false' }}">6</button>
+        <button type="button" data-servings="8" aria-current="{{ 'true' if ricetta.data.porzioni_base == 8 else 'false' }}">8</button>
+      </span>
+      porzioni
+    </div>
+    <ul class="ingredienti">
+      {% for ing in ricetta.data.ingredienti %}
+        <li {{ ing | scalingAttrs | safe }}>
+          <span>{{ ing.nome }}</span>
+          <span class="qty"><b data-qty>{{ ing.quantita if ing.quantita != null else "q.b." }}</b>{{ " " + ing.unita if ing.quantita != null }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}

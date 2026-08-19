@@ -1,0 +1,10 @@
+---
+pagination:
+  data: ricette
+  size: 1
+  alias: ricetta
+permalink: "/ricette/{{ ricetta.data.id }}/"
+layout: layouts/ricetta.njk
+eleventyComputed:
+  title: "{{ ricetta.data.titolo }}"
+---

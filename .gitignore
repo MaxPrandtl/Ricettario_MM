@@ -20,6 +20,9 @@ node_modules/
 _site/
 dist/
 
+# Log di sviluppo locale (server avviati in background durante i test)
+*.log
+
 # File di sistema
 .DS_Store
 Thumbs.db

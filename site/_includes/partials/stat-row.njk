@@ -1,0 +1,18 @@
+<dl class="stat-row">
+  <div class="stat">
+    <dt>Prep.</dt>
+    <dd>{{ ricetta.data.tempo_preparazione_min | formatTempo }}</dd>
+  </div>
+  <div class="stat">
+    <dt>Cottura</dt>
+    <dd>{{ ricetta.data.tempo_cottura_min | formatTempo }}</dd>
+  </div>
+  <div class="stat">
+    <dt>Porzioni</dt>
+    <dd data-live="porzioni">{{ ricetta.data.porzioni_base }}</dd>
+  </div>
+  <div class="stat">
+    <dt>Difficoltà</dt>
+    <dd>{{ ricetta.data.difficolta | capitalize }}</dd>
+  </div>
+</dl>

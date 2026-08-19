@@ -1,0 +1,20 @@
+{% if ricetta.data.passi and ricetta.data.passi.length %}
+  <ol class="passi">
+    {% for passo in ricetta.data.passi %}
+      <li>
+        <span class="step-num">{{ passo.numero }}</span>
+        <div class="step-body">
+          <p>{{ passo.testo }}</p>
+          {% if passo.foto %}
+            <img class="step-photo" src="{{ passo.foto }}" alt="">
+          {% endif %}
+          {% if passo.timer_sec %}
+            <span class="step-timer">⏱ {{ passo.timer_sec | formatTimerSec }}</span>
+          {% endif %}
+        </div>
+      </li>
+    {% endfor %}
+  </ol>
+{% else %}
+  <p class="no-procedimento">Questa ricetta non ha ancora un procedimento scritto passo-passo — è tramandata a voce.{% if ricetta.data.racconto %} Il racconto qui sopra ne racconta lo spirito.{% endif %}</p>
+{% endif %}
