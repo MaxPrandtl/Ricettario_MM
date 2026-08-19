@@ -636,9 +636,308 @@ footer {
   justify-content: space-between;
 }
 
+/* ============================================================
+   Editor ricette (/nuova-ricetta/)
+   Tutto derivato dai design token esistenti — nessun colore nuovo.
+   ============================================================ */
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ---------- Bottoni ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--paper-raised);
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.btn:hover { background: var(--tag-bg); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn:disabled:hover { background: var(--paper-raised); }
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.btn--primary:hover { background: color-mix(in srgb, var(--accent) 85%, black); }
+
+.btn--ghost {
+  background: var(--paper-raised);
+}
+
+.btn--danger {
+  color: var(--accent);
+  border-color: var(--rule);
+  background: transparent;
+}
+.btn--danger:hover { background: color-mix(in srgb, var(--accent) 12%, var(--paper-raised)); }
+
+.btn--icon {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+.btn--small { padding: 6px 12px; font-size: 0.78rem; }
+.btn--large { padding: 13px 26px; font-size: 0.96rem; width: 100%; }
+
+/* ---------- Vista login ---------- */
+.login-card {
+  max-width: 380px;
+  margin: 0 auto;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  box-shadow: 0 14px 28px -16px var(--shadow);
+  padding: 28px;
+}
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.editor-session {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin-bottom: 28px;
+}
+.editor-session strong { color: var(--ink); }
+
+/* ---------- Campi form generici ---------- */
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+label small {
+  font-weight: 400;
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="url"],
+input[type="password"],
+input[type="search"],
+select,
+textarea {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 400;
+  padding: 9px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+}
+textarea { resize: vertical; font-family: inherit; }
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+.form-row > label { flex: 1; min-width: 140px; }
+
+.form-section {
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-section > legend {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0 8px;
+  color: var(--ink);
+}
+
+/* ---------- Checklist tag/strumenti ---------- */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.checklist-group-label {
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+}
+.checklist-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+.checklist-item {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 0.86rem;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.checklist-item:hover { background: var(--tag-bg); }
+.checklist-item input { accent-color: var(--accent); }
+
+/* ---------- Righe dinamiche: ingredienti e passi ---------- */
+#ingredienti-list, #passi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.ingrediente-row, .passo-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 14px;
+}
+.ingrediente-row .form-row,
+.passo-row .form-row { align-items: flex-end; }
+.ingrediente-row .btn--icon,
+.passo-row > .btn--icon { align-self: flex-start; }
+
+.passo-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 12px;
+  align-items: start;
+}
+.passo-num {
+  font-family: var(--mono);
+  font-weight: 700;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--paper-raised);
+  border: 1.5px solid var(--rule);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.passo-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scala-control {
+  border-left: 3px solid var(--rule);
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.scaglioni-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.scaglioni-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.scaglione-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.scaglione-row input { flex: 1; min-width: 0; }
+.scaglione-row span { color: var(--ink-soft); }
+
+/* ---------- Errori ---------- */
+.form-error {
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper-raised));
+  border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  padding: 12px 16px;
+  margin: 0;
+}
+.form-error ul { margin: 6px 0 0; padding-left: 20px; }
+
+/* ---------- Vista successo ---------- */
+.success-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 16px;
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  margin: 20px 0;
+}
+.success-summary dt { color: var(--ink-soft); }
+.success-summary dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.editor-note {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  background: var(--paper-raised);
+  border: 1px dashed var(--rule);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
 @media (max-width: 480px) {
   .stat-row { grid-template-columns: repeat(2, 1fr); }
   .step-photo { max-width: 100%; }
+  .form-row { flex-direction: column; }
+  .form-row > label { min-width: 0; }
+  .checklist-group { grid-template-columns: 1fr 1fr; }
+  .passo-row { grid-template-columns: 32px 1fr; }
+  .passo-row > .btn--icon { grid-column: 1 / -1; justify-self: end; }
 }
 
 @media print {

@@ -1,0 +1,240 @@
+---
+title: "Nuova ricetta — Ricettario"
+permalink: "/nuova-ricetta/"
+---
+{% extends "layouts/base.njk" %}
+
+{% set pageClass = "page--editor" %}
+
+{% block content %}
+
+<div class="intro">
+  <p class="kicker">Editor ricette</p>
+  <h1>Nuova ricetta</h1>
+  <p>Accedi con il tuo profilo per compilare e pubblicare una nuova ricetta sul repo.</p>
+</div>
+
+<!-- ============================================================
+     VISTA 1: login. Mostrata di default; nascosta appena il login
+     ha successo. Il token vive solo in memoria JS (site/assets/js/editor.js),
+     mai in localStorage — un refresh riporta sempre qui.
+     ============================================================ -->
+<section id="login-view" class="login-card">
+  <form id="login-form" novalidate>
+    <label>Nome utente
+      <input type="text" id="login-username" name="username" required autocomplete="username">
+    </label>
+    <label>PIN
+      <input type="password" id="login-pin" name="pin" minlength="4" maxlength="8"
+             required inputmode="numeric" autocomplete="current-password">
+    </label>
+    <button type="submit" class="btn btn--primary">Accedi</button>
+    <p id="login-error" class="form-error" role="alert" hidden></p>
+  </form>
+</section>
+
+<!-- ============================================================
+     VISTA 2: form ricetta. Nascosta finché non si fa login.
+     ============================================================ -->
+<section id="recipe-view" hidden>
+  <p class="editor-session">Accesso come <strong id="session-author"></strong>
+    <button type="button" id="logout-btn" class="btn btn--ghost btn--small">Esci</button></p>
+
+  <form id="recipe-form" novalidate>
+
+    <fieldset class="form-section">
+      <legend>Dati base</legend>
+      <label>ID (slug) *
+        <input type="text" id="f-id" name="id" required
+               pattern="^[a-z0-9]+(-[a-z0-9]+)*$"
+               placeholder="es. torta-di-mele">
+        <small>Solo minuscole, numeri e trattini. Non generato dal titolo: scrivilo esplicitamente — è il nome del file e resta stabile anche se il titolo cambia.</small>
+      </label>
+      <label>Titolo *
+        <input type="text" id="f-titolo" name="titolo" required>
+      </label>
+      <div class="form-row">
+        <label>Tempo preparazione (min) *
+          <input type="number" id="f-tempo-prep" name="tempo_preparazione_min" min="0" required>
+        </label>
+        <label>Tempo cottura (min) *
+          <input type="number" id="f-tempo-cottura" name="tempo_cottura_min" min="0" required>
+        </label>
+        <label>Porzioni base *
+          <input type="number" id="f-porzioni" name="porzioni_base" min="1" required>
+        </label>
+        <label>Difficoltà *
+          <select id="f-difficolta" name="difficolta" required>
+            <option value="facile">Facile</option>
+            <option value="medio">Medio</option>
+            <option value="difficile">Difficile</option>
+          </select>
+        </label>
+      </div>
+      <label>Immagine di copertina (URL)
+        <input type="url" id="f-immagine" name="immagine_copertina" placeholder="https://…">
+      </label>
+      <label>Video (URL)
+        <input type="url" id="f-video" name="video" placeholder="https://…">
+      </label>
+      <label>Racconto (facoltativo)
+        <textarea id="f-racconto" name="racconto" rows="3" placeholder="Storytelling libero: da dove viene questa ricetta, un ricordo…"></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend>Categorie</legend>
+      <div class="checklist">
+        {% for gruppo, valori in tagsCanonici %}
+          <div class="checklist-group">
+            <p class="checklist-group-label">{{ gruppo }}</p>
+            {% for tag in valori %}
+              <label class="checklist-item">
+                <input type="checkbox" name="categorie" value="{{ tag }}"> {{ tag }}
+              </label>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend>Strumenti richiesti (non scontati)</legend>
+      <div class="checklist">
+        {% for gruppo, valori in strumentiCanonici %}
+          <div class="checklist-group">
+            <p class="checklist-group-label">{{ gruppo }}</p>
+            {% for s in valori %}
+              <label class="checklist-item">
+                <input type="checkbox" name="strumenti" value="{{ s }}"> {{ s }}
+              </label>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend>Scalabilità</legend>
+      <label class="checklist-item">
+        <input type="checkbox" id="f-scalabile" name="scalabile" checked>
+        Ricetta scalabile per porzioni diverse
+      </label>
+      <label id="nota-scalabilita-wrap" hidden>Nota (mostrata al posto del selettore porzioni)
+        <textarea id="f-nota-scalabilita" name="nota_scalabilita" rows="2"
+          placeholder="Es. Ricetta pensata per uno stampo da 24 cm: cambiando le dosi cambiano tempo di cottura e tecnica."></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend>Ingredienti</legend>
+      <div id="ingredienti-list"></div>
+      <button type="button" id="add-ingrediente" class="btn btn--ghost">+ Aggiungi ingrediente</button>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend>Procedimento</legend>
+      <div id="passi-list"></div>
+      <button type="button" id="add-passo" class="btn btn--ghost">+ Aggiungi passo</button>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend>Note (testo libero)</legend>
+      <textarea id="f-corpo" name="corpo_markdown" rows="5"
+        placeholder="Varianti, consigli di conservazione…"></textarea>
+    </fieldset>
+
+    <button type="submit" class="btn btn--primary btn--large" id="submit-btn">Pubblica ricetta</button>
+    <p id="submit-error" class="form-error" role="alert" hidden></p>
+  </form>
+</section>
+
+<!-- ============================================================
+     VISTA 3: conferma post-salvataggio. Costruita dai dati già in
+     mano lato client — nessuna nuova richiesta per rileggere la
+     ricetta appena creata.
+     ============================================================ -->
+<section id="success-view" hidden>
+  <h2>Ricetta pubblicata</h2>
+  <dl class="success-summary" id="success-summary"></dl>
+  <p><a id="success-github-link" href="#" target="_blank" rel="noopener" class="btn btn--primary">Vedi il file su GitHub</a></p>
+  <p><a href="/nuova-ricetta/" class="btn btn--ghost">Inserisci un'altra ricetta</a></p>
+  <p class="editor-note">La ricetta è già su GitHub, ma non ancora visibile in questo sito locale: serve un <code>git pull</code> manuale (e un rebuild) per vederla qui.</p>
+</section>
+
+<!-- ============================================================
+     Template clonabili per le righe dinamiche (mai concatenazione
+     di stringhe HTML — .content.cloneNode(true) in editor.js).
+     ============================================================ -->
+
+<template id="ingrediente-row-template">
+  <div class="ingrediente-row" data-row>
+    <div class="form-row">
+      <label>Nome *
+        <input type="text" data-field="nome" required>
+      </label>
+      <label>Quantità
+        <input type="number" step="any" min="0" data-field="quantita">
+      </label>
+      <label>Unità *
+        <input type="text" data-field="unita" required placeholder="g, ml, pz, q.b.…">
+      </label>
+      <button type="button" class="btn btn--icon btn--danger" data-remove-row aria-label="Rimuovi ingrediente">✕</button>
+    </div>
+
+    <div class="scala-control">
+      <label>Scalatura
+        <select data-field="scala-tipo">
+          <option value="lineare" selected>Lineare (default)</option>
+          <option value="fisso">Fisso (non scala mai)</option>
+          <option value="moltiplicatore">Moltiplicatore numerico</option>
+          <option value="scaglioni">Scaglioni per fascia di porzioni</option>
+        </select>
+      </label>
+
+      <label data-scala-sub="moltiplicatore" hidden>Moltiplicatore (es. 0.7 = scala meno del piatto)
+        <input type="number" step="any" min="0.01" data-field="scala-moltiplicatore">
+      </label>
+
+      <div data-scala-sub="scaglioni" hidden class="scaglioni-table">
+        <div class="scaglioni-rows" data-scaglioni-rows></div>
+        <button type="button" class="btn btn--ghost btn--small" data-add-scaglione>+ Aggiungi fascia</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="scaglione-row-template">
+  <div class="scaglione-row" data-scaglione-row>
+    <input type="text" data-field="scaglione-chiave" placeholder="es. 4 oppure 1-2" pattern="^\d+(-\d+)?$">
+    <span>→</span>
+    <input type="number" min="0" step="1" data-field="scaglione-valore" placeholder="quantità">
+    <button type="button" class="btn btn--icon btn--danger btn--small" data-remove-scaglione aria-label="Rimuovi fascia">✕</button>
+  </div>
+</template>
+
+<template id="passo-row-template">
+  <div class="passo-row" data-row>
+    <span class="passo-num" data-passo-num>1</span>
+    <div class="passo-fields">
+      <label>Testo *
+        <textarea data-field="testo" rows="2" required></textarea>
+      </label>
+      <div class="form-row">
+        <label>Foto (URL)
+          <input type="url" data-field="foto" placeholder="https://…">
+        </label>
+        <label>Timer (secondi)
+          <input type="number" min="0" step="1" data-field="timer_sec">
+        </label>
+      </div>
+    </div>
+    <button type="button" class="btn btn--icon btn--danger" data-remove-row aria-label="Rimuovi passo">✕</button>
+  </div>
+</template>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/assets/js/editor.js" defer></script>
+{% endblock %}

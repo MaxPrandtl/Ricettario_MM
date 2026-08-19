@@ -48,11 +48,29 @@ PWA/stampa.
   deployato: si avvia in locale con `npm run dev` (http://localhost:8080).
 - Bozze visive originali in `/site/preview` mantenute come archivio storico, non
   più la fonte di verità per lo stile (quel ruolo è ora del CSS/template in `/site`).
+- **Editor grafico** (`/nuova-ricetta/`, `site/pages/nuova-ricetta.njk` +
+  `site/assets/js/editor.js`): login (username+PIN) integrato nella stessa pagina,
+  form dinamico (righe ingrediente/passo aggiungibili/rimovibili via
+  `<template>` clonati) con controllo completo su tutte e 4 le forme di `scala`
+  per ogni ingrediente (lineare/fisso/moltiplicatore/scaglioni, con select +
+  sotto-controllo condizionale). Invia a `POST /recipes` del backend locale;
+  dopo il salvataggio mostra un riepilogo costruito dai dati già in mano
+  (nessuna nuova richiesta) + link al file su GitHub — vederla nel sito locale
+  richiede un `git pull` manuale, non automatico. Token di sessione solo in
+  memoria JS (mai `localStorage`): un refresh riporta al login. Verificato
+  end-to-end via API diretta: tutti e 4 i casi di `scala` serializzati
+  correttamente, autore assegnato server-side, conflitto slug (409) e tag
+  sconosciuto (422) gestiti col messaggio corretto.
 
-**Prossimo passo concreto, richiesto esplicitamente dall'utente:** un editor
-grafico nel sito stesso per inserire/modificare ricette, collegato all'endpoint
-`POST /recipes` già funzionante — non ancora iniziato. Dopo: deploy di backend e
-sito (Render/Railway per il backend, GitHub Pages per il sito, come da brief).
+**Porte fisse in sviluppo locale** (convenzione, non configurabile da env per
+ora): backend FastAPI su `http://localhost:8000`, sito Eleventy su
+`http://localhost:8080`. Il backend ha CORS abilitato solo per quell'origin
+esplicita (non wildcard, dato che si manda `Authorization: Bearer`) — va
+rivisto quando si fa il deploy.
+
+**Prossimo passo:** deploy di backend e sito (Render/Railway per il backend,
+GitHub Pages per il sito, come da brief) — finché resta tutto locale, l'editor
+è utilizzabile solo dalla stessa macchina con entrambi i server avviati.
 
 ## Obiettivo del progetto
 
@@ -334,10 +352,11 @@ sorgente delle ricette. Da sviluppare per ultimo.
    verificato in locale.
 5. ~~Backend Python (`/backend`): validazione tag, login, scrittura via Contents
    API.~~ Fatto, verificato end-to-end contro GitHub reale.
-6. Editor grafico di inserimento/modifica ricette nel sito, collegato al backend
-   già pronto — prossimo passo concreto.
+6. ~~Editor grafico di inserimento ricette nel sito~~ Fatto per la creazione
+   (solo locale). La modifica di ricette esistenti non è ancora implementata
+   (il backend espone solo `POST /recipes`, non un update).
 7. Deploy: backend su Render/Railway, sito su GitHub Pages con rebuild via GitHub
-   Actions.
+   Actions — prossimo passo concreto.
 8. PWA e generazione PDF stampabile — in coda, non bloccanti.
 
 ## Convenzioni per chi lavora su questo repo
