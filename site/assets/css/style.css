@@ -1012,6 +1012,13 @@ textarea:focus-visible {
   justify-content: center;
   padding: 20px;
 }
+/* [hidden] ha la stessa specificità di .anteprima-modal (0,1,0): senza
+   questa regola esplicita, "display: flex" sopra vince sull'attributo
+   nativo hidden e il modal resta visibile anche quando dovrebbe sparire —
+   bug reale riscontrato: popup vuoto sopra il form di login. */
+.anteprima-modal[hidden] {
+  display: none;
+}
 .anteprima-content {
   position: relative;
   max-width: 560px;
