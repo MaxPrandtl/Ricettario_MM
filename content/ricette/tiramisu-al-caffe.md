@@ -1,7 +1,7 @@
 ---
 id: tiramisu-al-caffe
 titolo: "Tiramisù al caffè"
-categorie: [dolce, "senza cottura", "tradizione di famiglia", festivo]
+categorie: [dolce, "senza cottura", festivo, "tradizione di famiglia"]
 tempo_preparazione_min: 30
 tempo_cottura_min: 0
 porzioni_base: 6
@@ -11,23 +11,22 @@ data_inserimento: 2026-08-17
 immagine_copertina: "https://example-storage.com/ricettario/tiramisu/copertina.jpg"
 video: null
 racconto: null
-strumenti: ["planetaria"]        # opzionale: velocizza il montaggio, non indispensabile
+strumenti: []
 ingredienti:
   - nome: "savoiardi"
     quantita: 300
     unita: g
-    # nessun campo scala → lineare (default)
   - nome: "mascarpone"
     quantita: 500
     unita: g
   - nome: "uova"
     quantita: 4
     unita: pz
-    scala:                        # a unità intere: scaglioni invece di frazioni assurde
-      "1-2": 2
+    scala:
       "4": 4
       "6": 6
       "8": 8
+      "1-2": 2
   - nome: "zucchero"
     quantita: 120
     unita: g
@@ -37,7 +36,7 @@ ingredienti:
   - nome: "cacao amaro in polvere"
     quantita: 20
     unita: g
-    scala: 0.7                    # la spolverata finale non deve raddoppiare col piatto
+    scala: 0.7
 passi:
   - numero: 1
     testo: "Separare i tuorli dagli albumi. Montare i tuorli con lo zucchero fino a ottenere un composto chiaro e spumoso."
