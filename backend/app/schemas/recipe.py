@@ -12,7 +12,7 @@ from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-Difficolta = Literal["facile", "medio", "difficile"]
+Difficolta = float  # 1.0-5.0, step 0.5 — vedi validator su RicettaCreateRequest
 
 # Chiavi ammesse nella mappa di scaglioni: "8" oppure "4-6"
 _SCAGLIONE_KEY_RE = re.compile(r"^\d+(-\d+)?$")
@@ -80,7 +80,7 @@ class RicettaCreateRequest(BaseModel):
     tempo_preparazione_min: int = Field(ge=0)
     tempo_cottura_min: int = Field(ge=0)
     porzioni_base: int = Field(gt=0)
-    difficolta: Difficolta
+    difficolta: Difficolta = Field(ge=1, le=5)
     immagine_copertina: Optional[str] = None
     video: Optional[str] = None
     racconto: Optional[str] = None
@@ -90,6 +90,13 @@ class RicettaCreateRequest(BaseModel):
     ingredienti: list[Ingrediente]
     passi: list[Passo] = Field(default_factory=list)
     corpo_markdown: Optional[str] = None
+
+    @field_validator("difficolta")
+    @classmethod
+    def valida_step_difficolta(cls, v: float) -> float:
+        if (v * 2) != int(v * 2):
+            raise ValueError("difficolta deve essere un multiplo di 0.5 (es. 1, 1.5, 2, ..., 5)")
+        return v
 
 
 class RicettaIn(RicettaCreateRequest):

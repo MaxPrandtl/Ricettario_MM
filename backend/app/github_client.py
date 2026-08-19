@@ -45,6 +45,21 @@ class GithubClient:
                 return None
             raise
 
+    def get_file_content(self, path: str) -> str | None:
+        """Ritorna il contenuto testuale decodificato del file, o None se non
+        esiste. Usato da GET /recipes/{id} e da PUT /recipes/{id} (per
+        recuperare data_inserimento dall'originale) e dalla logica di
+        pubblicazione bozze/tassonomia libera."""
+        try:
+            content = self._repo.get_contents(path)
+            if isinstance(content, list):
+                raise ValueError(f"{path} è una directory, non un file")
+            return content.decoded_content.decode("utf-8")
+        except GithubException as e:
+            if e.status == 404:
+                return None
+            raise
+
     def create_file(
         self,
         path: str,
@@ -87,6 +102,25 @@ class GithubClient:
         )
         commit = result["commit"]
         return CommitResult(commit_sha=commit.sha, commit_url=commit.html_url)
+
+    def delete_file(
+        self,
+        path: str,
+        message: str,
+        sha: str,
+        author_name: str,
+        author_email: str,
+    ) -> None:
+        """Usata dal flusso di pubblicazione bozze: rimuove il file da
+        content/bozze/ dopo averlo ricreato in content/ricette/."""
+        author = InputGitAuthor(author_name, author_email)
+        self._repo.delete_file(
+            path=path,
+            message=message,
+            sha=sha,
+            author=author,
+            committer=author,
+        )
 
 
 def get_github_client() -> GithubClient:

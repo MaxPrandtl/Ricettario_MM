@@ -10,22 +10,18 @@
   <div class="tags">
     {% for tag in ricetta.data.categorie %}<span class="tag">{{ tag }}</span>{% endfor %}
   </div>
-
-  {% include "partials/stat-row.njk" %}
 </div>
-
-{% if ricetta.data.strumenti and ricetta.data.strumenti.length %}
-  {% include "partials/strumenti.njk" %}
-{% endif %}
-
-{% if ricetta.data.video %}
-  <a class="video-link" href="{{ ricetta.data.video }}" target="_blank" rel="noopener">▶ Guarda il video della preparazione</a>
-{% endif %}
 
 {% if ricetta.data.immagine_copertina %}
   <img class="cover" src="{{ ricetta.data.immagine_copertina }}" alt="{{ ricetta.data.titolo }}">
 {% else %}
   <p class="cover-missing">Nessuna foto di copertina per questa ricetta — campo facoltativo.</p>
+{% endif %}
+
+{% include "partials/stat-row.njk" %}
+
+{% if ricetta.data.video %}
+  <a class="video-link" href="{{ ricetta.data.video }}" target="_blank" rel="noopener">▶ Guarda il video della preparazione</a>
 {% endif %}
 
 {% if ricetta.data.racconto %}
@@ -39,6 +35,10 @@
   <h2>Ingredienti</h2>
   {% include "partials/ingredienti.njk" %}
 </section>
+
+{% if ricetta.data.strumenti and ricetta.data.strumenti.length %}
+  {% include "partials/strumenti.njk" %}
+{% endif %}
 
 <section>
   <h2>Procedimento</h2>
@@ -55,6 +55,7 @@
 <footer>
   <span>{{ ricetta.data.autore }} · {{ ricetta.data.data_inserimento }}</span>
   <span>Ricettario di famiglia</span>
+  <a class="btn btn--ghost btn--small" href="/nuova-ricetta/?modifica={{ ricetta.data.id }}">✎ Modifica questa ricetta</a>
 </footer>
 
 {% endblock %}

@@ -1,7 +1,7 @@
 {% macro cardRicetta(r) %}
 <a class="card" href="/ricette/{{ r.id }}/" data-id="{{ r.id }}">
   <div class="card-cover {{ 'is-empty' if not r.immagine_copertina }}">
-    <span class="card-difficulty">{{ r.difficolta | capitalize }}</span>
+    <span class="card-difficulty">{{ r.difficolta | difficoltaIcone | safe }}</span>
   </div>
   <div class="card-body">
     <h3 class="card-title">{{ r.titolo }}</h3>

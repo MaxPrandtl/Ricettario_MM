@@ -95,7 +95,7 @@ def render_recipe_markdown(r: RicettaIn) -> str:
     lines.append(f"tempo_preparazione_min: {r.tempo_preparazione_min}")
     lines.append(f"tempo_cottura_min: {r.tempo_cottura_min}")
     lines.append(f"porzioni_base: {r.porzioni_base}")
-    lines.append(f"difficolta: {r.difficolta}")
+    lines.append(f"difficolta: {_format_number(r.difficolta)}")
     lines.append(f"autore: {_yaml_scalar(r.autore)}")
     lines.append(f"data_inserimento: {r.data_inserimento.isoformat()}")
     lines.append(f"immagine_copertina: {_yaml_scalar_or_null(r.immagine_copertina)}")
@@ -147,3 +147,8 @@ def verify_roundtrip(rendered: str, r: RicettaIn) -> None:
 
     if len(parsed.get("ingredienti") or []) != len(r.ingredienti):
         raise ValueError("round-trip check fallito: numero ingredienti non corrisponde")
+
+    # yaml.safe_load ritorna int per valori interi (es. 3, non 3.0), ma
+    # 3 == 3.0 è True in Python — il confronto diretto funziona senza cast.
+    if parsed.get("difficolta") != r.difficolta:
+        raise ValueError("round-trip check fallito: difficolta non corrisponde")

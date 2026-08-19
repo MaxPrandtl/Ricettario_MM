@@ -28,10 +28,33 @@ permalink: "/"
 
   <details class="filter-pill">
     <summary>Difficoltà ▾</summary>
-    <div class="filter-panel">
-      <label><input type="checkbox" name="difficolta" value="facile"> Facile</label>
-      <label><input type="checkbox" name="difficolta" value="medio"> Medio</label>
-      <label><input type="checkbox" name="difficolta" value="difficile"> Difficile</label>
+    <div class="filter-panel filter-panel--range">
+      <label>Da
+        <select name="difficolta-min">
+          <option value="1" selected>1</option>
+          <option value="1.5">1.5</option>
+          <option value="2">2</option>
+          <option value="2.5">2.5</option>
+          <option value="3">3</option>
+          <option value="3.5">3.5</option>
+          <option value="4">4</option>
+          <option value="4.5">4.5</option>
+          <option value="5">5</option>
+        </select>
+      </label>
+      <label>A
+        <select name="difficolta-max">
+          <option value="1">1</option>
+          <option value="1.5">1.5</option>
+          <option value="2">2</option>
+          <option value="2.5">2.5</option>
+          <option value="3">3</option>
+          <option value="3.5">3.5</option>
+          <option value="4">4</option>
+          <option value="4.5">4.5</option>
+          <option value="5" selected>5</option>
+        </select>
+      </label>
     </div>
   </details>
 

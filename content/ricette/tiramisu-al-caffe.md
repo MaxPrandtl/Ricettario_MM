@@ -5,7 +5,7 @@ categorie: [dolce, "senza cottura", "tradizione di famiglia", festivo]
 tempo_preparazione_min: 30
 tempo_cottura_min: 0
 porzioni_base: 6
-difficolta: facile
+difficolta: 1.5
 autore: "Mary"
 data_inserimento: 2026-08-17
 immagine_copertina: "https://example-storage.com/ricettario/tiramisu/copertina.jpg"

@@ -57,6 +57,30 @@ export default function (eleventyConfig) {
     (ingredienti || []).map((i) => i.nome)
   );
 
+  // Difficoltà 1-5 (step 0.5) -> sequenza di 5 "padelle" piene/mezze/vuote in
+  // markup HTML. Nessun carattere Unicode "mezza padella" esiste in modo
+  // affidabile cross-piattaforma: la mezza padella è resa con due span 🍳
+  // sovrapposti, uno pieno tagliato al 50% via CSS sopra uno vuoto in scala
+  // di grigi (vedi .difficolta-icone/.padella--* in style.css).
+  eleventyConfig.addFilter("difficoltaIcone", (valore) => {
+    const piene = Math.floor(valore);
+    const mezza = valore - piene === 0.5;
+    const vuote = 5 - piene - (mezza ? 1 : 0);
+
+    let html = `<span class="difficolta-icone" aria-hidden="true">`;
+    for (let i = 0; i < piene; i++) html += `<span class="padella padella--piena">🍳</span>`;
+    if (mezza) {
+      html +=
+        `<span class="padella padella--mezza">` +
+        `<span class="padella-piena">🍳</span>` +
+        `<span class="padella-vuota">🍳</span>` +
+        `</span>`;
+    }
+    for (let i = 0; i < vuote; i++) html += `<span class="padella padella--vuota">🍳</span>`;
+    html += `</span>`;
+    return html;
+  });
+
   return {
     dir: {
       input: "site/pages",

@@ -5,7 +5,7 @@ categorie: [primo, "al forno", bollito, "tradizione di famiglia", festivo, inver
 tempo_preparazione_min: 20
 tempo_cottura_min: 180
 porzioni_base: 8
-difficolta: medio
+difficolta: 3
 autore: "Nonna Anna"
 data_inserimento: 2026-08-17
 immagine_copertina: "https://example-storage.com/ricettario/ragu/copertina.jpg"

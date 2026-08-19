@@ -33,11 +33,17 @@
     return checked && checked.value ? parseInt(checked.value, 10) : null;
   }
 
+  function selectValue(name) {
+    var el = document.querySelector('select[name="' + name + '"]');
+    return el ? parseFloat(el.value) : null;
+  }
+
   function currentFilters() {
     return {
       testo: (searchBox ? searchBox.value : '').trim().toLowerCase(),
       categorie: checkedValues('categoria'),
-      difficolta: checkedValues('difficolta'),
+      difficoltaMin: selectValue('difficolta-min'),
+      difficoltaMax: selectValue('difficolta-max'),
       tempoMax: radioValue('tempo'),
       strumentiEsclusi: checkedValues('strumento-escludi'),
     };
@@ -54,7 +60,10 @@
     if (f.categorie.length && !f.categorie.some(function (c) { return ricetta.categorie.indexOf(c) !== -1; })) {
       return false;
     }
-    if (f.difficolta.length && f.difficolta.indexOf(ricetta.difficolta) === -1) {
+    if (f.difficoltaMin !== null && ricetta.difficolta < f.difficoltaMin) {
+      return false;
+    }
+    if (f.difficoltaMax !== null && ricetta.difficolta > f.difficoltaMax) {
       return false;
     }
     if (f.tempoMax !== null && ricetta.tempo_totale_min > f.tempoMax) {
@@ -89,7 +98,7 @@
   }
 
   document.addEventListener('change', function (e) {
-    if (e.target.matches('input[name="categoria"], input[name="difficolta"], input[name="tempo"], input[name="strumento-escludi"]')) {
+    if (e.target.matches('input[name="categoria"], select[name="difficolta-min"], select[name="difficolta-max"], input[name="tempo"], input[name="strumento-escludi"]')) {
       applyFilters();
     }
   });

@@ -5,7 +5,7 @@ categorie: [dolce, "al forno", "tradizione di famiglia", "tutto l'anno"]
 tempo_preparazione_min: 25
 tempo_cottura_min: 45
 porzioni_base: 8
-difficolta: facile
+difficolta: 1.5
 autore: "Mary"
 data_inserimento: 2026-08-19
 immagine_copertina: "https://example-storage.com/ricettario/torta-mele/copertina.jpg"

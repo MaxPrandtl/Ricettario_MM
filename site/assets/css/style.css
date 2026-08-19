@@ -251,6 +251,27 @@ h1 {
   accent-color: var(--accent);
 }
 
+.filter-panel--range {
+  flex-direction: row;
+  gap: 12px;
+}
+.filter-panel--range label {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.filter-panel--range select {
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  padding: 6px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
 /* ---------- Griglia card (pagina indice) ---------- */
 .grid {
   display: grid;
@@ -332,10 +353,10 @@ h1 {
 }
 .no-results[hidden] { display: none; }
 
-/* ---------- Statistiche ricetta: prep/cottura/porzioni/difficoltà ---------- */
+/* ---------- Statistiche ricetta: prep/cottura/totale/porzioni/difficoltà ---------- */
 .stat-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1px;
   background: var(--rule);
   border: 1px solid var(--rule);
@@ -364,6 +385,16 @@ h1 {
   margin: 0;
   color: var(--ink);
 }
+
+/* ---------- Difficoltà a "padelle" ---------- */
+.difficolta-icone { display: inline-flex; gap: 1px; font-size: 1rem; line-height: 1; }
+.padella--vuota { filter: grayscale(1) opacity(0.35); }
+.padella--mezza { position: relative; display: inline-block; width: 1em; }
+.padella--mezza .padella-piena,
+.padella--mezza .padella-vuota { position: absolute; inset: 0; overflow: hidden; }
+.padella--mezza .padella-piena { width: 50%; }
+.padella--mezza .padella-vuota { filter: grayscale(1) opacity(0.35); }
+.card-difficulty .difficolta-icone { font-size: 0.8rem; }
 
 /* ---------- Strumenti necessari ---------- */
 .strumenti-row {
@@ -930,14 +961,88 @@ textarea:focus-visible {
   padding: 12px 16px;
 }
 
+/* ---------- Bottoni salva bozza / pubblica / anteprima ---------- */
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+.form-actions .btn { flex: 1; min-width: 160px; }
+
+/* ---------- Campo input + selettore unità (tempi min/sec) ---------- */
+.input-with-unit { display: flex; gap: 6px; align-items: center; }
+.input-with-unit input { flex: 1; min-width: 0; }
+.input-with-unit select {
+  flex: 0 0 auto;
+  width: auto;
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  padding: 9px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* ---------- Tag/strumenti liberi ---------- */
+.tag-libero-input {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.tag-libero-input input {
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  padding: 8px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* ---------- Anteprima (modal) ---------- */
+.anteprima-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.anteprima-content {
+  position: relative;
+  max-width: 560px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  box-shadow: 0 20px 40px -20px var(--shadow);
+  padding: 28px;
+}
+.anteprima-content #anteprima-chiudi {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+.anteprima-content h2 {
+  margin: 0 24px 12px 0;
+}
+
 @media (max-width: 480px) {
-  .stat-row { grid-template-columns: repeat(2, 1fr); }
+  .stat-row { grid-template-columns: repeat(3, 1fr); }
   .step-photo { max-width: 100%; }
   .form-row { flex-direction: column; }
   .form-row > label { min-width: 0; }
   .checklist-group { grid-template-columns: 1fr 1fr; }
   .passo-row { grid-template-columns: 32px 1fr; }
   .passo-row > .btn--icon { grid-column: 1 / -1; justify-self: end; }
+  .form-actions { flex-direction: column; }
+  .form-actions .btn { min-width: 0; }
 }
 
 @media print {

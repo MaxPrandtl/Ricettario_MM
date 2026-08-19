@@ -5,7 +5,7 @@ categorie: [antipasto, aperitivo, vegano, estate, "tutti i giorni", italiana]
 tempo_preparazione_min: 15
 tempo_cottura_min: 5
 porzioni_base: 4
-difficolta: facile
+difficolta: 1.5
 autore: "Mary"
 data_inserimento: 2026-08-19
 immagine_copertina: null

@@ -10,7 +10,7 @@ permalink: "/nuova-ricetta/"
 
 <div class="intro">
   <p class="kicker">Editor ricette</p>
-  <h1>Nuova ricetta</h1>
+  <h1 id="editor-title">Nuova ricetta</h1>
   <p>Accedi con il tuo profilo per compilare e pubblicare una nuova ricetta sul repo.</p>
 </div>
 
@@ -35,6 +35,8 @@ permalink: "/nuova-ricetta/"
 
 <!-- ============================================================
      VISTA 2: form ricetta. Nascosta finché non si fa login.
+     Modalità crea (nessun ?modifica=) o modifica (?modifica=<id>),
+     gestita interamente da editor.js.
      ============================================================ -->
 <section id="recipe-view" hidden>
   <p class="editor-session">Accesso come <strong id="session-author"></strong>
@@ -48,26 +50,44 @@ permalink: "/nuova-ricetta/"
         <input type="text" id="f-id" name="id" required
                pattern="^[a-z0-9]+(-[a-z0-9]+)*$"
                placeholder="es. torta-di-mele">
-        <small>Solo minuscole, numeri e trattini. Non generato dal titolo: scrivilo esplicitamente — è il nome del file e resta stabile anche se il titolo cambia.</small>
+        <small>Solo minuscole, numeri e trattini. Non generato dal titolo: scrivilo esplicitamente — è il nome del file e resta stabile anche se il titolo cambia. In modifica non è modificabile.</small>
       </label>
       <label>Titolo *
         <input type="text" id="f-titolo" name="titolo" required>
       </label>
       <div class="form-row">
-        <label>Tempo preparazione (min) *
-          <input type="number" id="f-tempo-prep" name="tempo_preparazione_min" min="0" required>
+        <label>Tempo preparazione *
+          <span class="input-with-unit">
+            <input type="number" id="f-tempo-prep" name="tempo_preparazione_min" min="0" step="any" required>
+            <select id="f-tempo-prep-unita" aria-label="Unità tempo preparazione">
+              <option value="min" selected>min</option>
+              <option value="sec">sec</option>
+            </select>
+          </span>
         </label>
-        <label>Tempo cottura (min) *
-          <input type="number" id="f-tempo-cottura" name="tempo_cottura_min" min="0" required>
+        <label>Tempo cottura *
+          <span class="input-with-unit">
+            <input type="number" id="f-tempo-cottura" name="tempo_cottura_min" min="0" step="any" required>
+            <select id="f-tempo-cottura-unita" aria-label="Unità tempo cottura">
+              <option value="min" selected>min</option>
+              <option value="sec">sec</option>
+            </select>
+          </span>
         </label>
         <label>Porzioni base *
           <input type="number" id="f-porzioni" name="porzioni_base" min="1" required>
         </label>
         <label>Difficoltà *
           <select id="f-difficolta" name="difficolta" required>
-            <option value="facile">Facile</option>
-            <option value="medio">Medio</option>
-            <option value="difficile">Difficile</option>
+            <option value="1">1 — Molto facile</option>
+            <option value="1.5">1.5</option>
+            <option value="2">2</option>
+            <option value="2.5">2.5</option>
+            <option value="3" selected>3 — Media</option>
+            <option value="3.5">3.5</option>
+            <option value="4">4</option>
+            <option value="4.5">4.5</option>
+            <option value="5">5 — Molto difficile</option>
           </select>
         </label>
       </div>
@@ -96,6 +116,9 @@ permalink: "/nuova-ricetta/"
           </div>
         {% endfor %}
       </div>
+      <label class="tag-libero-input">Aggiungi altro (separati da virgola)
+        <input type="text" id="f-categorie-libere" placeholder="es. senza uova, veloce">
+      </label>
     </fieldset>
 
     <fieldset class="form-section">
@@ -112,6 +135,9 @@ permalink: "/nuova-ricetta/"
           </div>
         {% endfor %}
       </div>
+      <label class="tag-libero-input">Aggiungi altro (separati da virgola)
+        <input type="text" id="f-strumenti-liberi" placeholder="es. griglia elettrica">
+      </label>
     </fieldset>
 
     <fieldset class="form-section">
@@ -144,7 +170,11 @@ permalink: "/nuova-ricetta/"
         placeholder="Varianti, consigli di conservazione…"></textarea>
     </fieldset>
 
-    <button type="submit" class="btn btn--primary btn--large" id="submit-btn">Pubblica ricetta</button>
+    <div class="form-actions">
+      <button type="submit" class="btn btn--ghost btn--large" id="submit-bozza-btn" data-stato="bozza">Salva bozza</button>
+      <button type="submit" class="btn btn--primary btn--large" id="submit-pubblica-btn" data-stato="pubblicata">Pubblica ricetta</button>
+      <button type="button" class="btn btn--ghost btn--large" id="anteprima-btn">Anteprima</button>
+    </div>
     <p id="submit-error" class="form-error" role="alert" hidden></p>
   </form>
 </section>
@@ -155,12 +185,26 @@ permalink: "/nuova-ricetta/"
      ricetta appena creata.
      ============================================================ -->
 <section id="success-view" hidden>
-  <h2>Ricetta pubblicata</h2>
+  <h2 id="success-title">Ricetta pubblicata</h2>
   <dl class="success-summary" id="success-summary"></dl>
   <p><a id="success-github-link" href="#" target="_blank" rel="noopener" class="btn btn--primary">Vedi il file su GitHub</a></p>
   <p><a href="/nuova-ricetta/" class="btn btn--ghost">Inserisci un'altra ricetta</a></p>
   <p class="editor-note">La ricetta è già su GitHub, ma non ancora visibile in questo sito locale: serve un <code>git pull</code> manuale (e un rebuild) per vederla qui.</p>
 </section>
+
+<!-- ============================================================
+     Anteprima: lista campi leggibile, non una riproduzione dello
+     stile grafico completo della pagina pubblica (per non dover
+     mantenere sincronizzate due implementazioni dello stesso
+     template ogni volta che lo stile della pagina ricetta cambia).
+     ============================================================ -->
+<div id="anteprima-modal" class="anteprima-modal" hidden>
+  <div class="anteprima-content">
+    <button type="button" class="btn btn--icon" id="anteprima-chiudi" aria-label="Chiudi anteprima">✕</button>
+    <h2 id="anteprima-titolo"></h2>
+    <dl class="success-summary" id="anteprima-corpo"></dl>
+  </div>
+</div>
 
 <!-- ============================================================
      Template clonabili per le righe dinamiche (mai concatenazione
@@ -224,8 +268,14 @@ permalink: "/nuova-ricetta/"
         <label>Foto (URL)
           <input type="url" data-field="foto" placeholder="https://…">
         </label>
-        <label>Timer (secondi)
-          <input type="number" min="0" step="1" data-field="timer_sec">
+        <label>Timer
+          <span class="input-with-unit">
+            <input type="number" min="0" step="any" data-field="timer_sec">
+            <select data-field="timer-unita">
+              <option value="sec" selected>sec</option>
+              <option value="min">min</option>
+            </select>
+          </span>
         </label>
       </div>
     </div>

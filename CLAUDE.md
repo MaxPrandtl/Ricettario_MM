@@ -53,14 +53,54 @@ PWA/stampa.
   form dinamico (righe ingrediente/passo aggiungibili/rimovibili via
   `<template>` clonati) con controllo completo su tutte e 4 le forme di `scala`
   per ogni ingrediente (lineare/fisso/moltiplicatore/scaglioni, con select +
-  sotto-controllo condizionale). Invia a `POST /recipes` del backend locale;
-  dopo il salvataggio mostra un riepilogo costruito dai dati già in mano
-  (nessuna nuova richiesta) + link al file su GitHub — vederla nel sito locale
-  richiede un `git pull` manuale, non automatico. Token di sessione solo in
-  memoria JS (mai `localStorage`): un refresh riporta al login. Verificato
-  end-to-end via API diretta: tutti e 4 i casi di `scala` serializzati
-  correttamente, autore assegnato server-side, conflitto slug (409) e tag
-  sconosciuto (422) gestiti col messaggio corretto.
+  sotto-controllo condizionale). Token di sessione solo in memoria JS (mai
+  `localStorage`): un refresh riporta al login.
+- **Modifica ricette esistenti**: stessa pagina editor, query string
+  `?modifica=<id>` (link "✎ Modifica questa ricetta" in ogni pagina ricetta) —
+  precompila l'intero form via `GET /recipes/{id}` (autenticato, legge da
+  GitHub). Backend: `PUT /recipes/{id}` gestisce lo sha per rilevare conflitti
+  di scrittura concorrente (409 `concurrent_edit`), preserva `data_inserimento`
+  dall'originale (data di prima creazione, mai resettata da una modifica),
+  riassegna sempre `autore` al profilo che sta modificando.
+- **Bozze**: nessun campo di stato nello schema — il path stesso è lo stato
+  (`content/bozze/{id}.md` vs `content/ricette/{id}.md`, quest'ultima l'unica
+  letta dal generatore). Query param `?stato=bozza|pubblicata` su create/update;
+  `POST /recipes/{id}/pubblica` sposta bozza→pubblicata (leggi, scrivi altrove,
+  cancella l'originale). Due bottoni nel form ("Salva bozza"/"Pubblica"), il
+  terzo diventa "Salva modifiche" quando si modifica una ricetta già pubblicata.
+- **Anteprima**: bottone che mostra i dati del form correnti in una lista
+  leggibile (non una riproduzione dello stile grafico della pagina pubblica,
+  per non dover mantenere sincronizzate due implementazioni dello stesso
+  template).
+- **Difficoltà**: scala numerica 1-5 a step 0.5 (non più facile/medio/
+  difficile), mostrata come icone "padella" 🍳 piene/mezza/vuote (filtro
+  Nunjucks `difficoltaIcone`, la mezza resa via CSS non Unicode). Filtro di
+  ricerca a range numerico (due `<select>` Da/A). Le 4 ricette d'esempio
+  convertite (facile→1.5, medio→3).
+- **Tag/strumenti liberi**: oltre alle checklist, un campo testo libero per
+  categoria e per strumenti. Il backend normalizza (case-insensitive/trim) e
+  risolve alla forma canonica esistente se il match c'è; se il valore è
+  genuinamente nuovo lo aggiunge a `tags.yaml`/`strumenti.yaml` (gruppo
+  "personalizzati") in un commit separato, **prima** di quello della ricetta,
+  preservando i commenti editoriali del file (mai un giro yaml.dump).
+- **Tempi flessibili**: selettore min/sec accanto a tempo preparazione, tempo
+  cottura, e timer di ogni passo — conversione lato client solo al momento
+  dell'invio, lo schema dati resta sempre minuti (tempi ricetta) e secondi
+  (timer passo). Nuova cella "Totale" (prep+cottura) nella pagina ricetta.
+- **Riordino pagina ricetta**: copertina → statistiche → ingredienti →
+  strumenti → procedimento → note (strumenti spostato da prima a dopo
+  ingredienti).
+
+Verificato end-to-end via API diretta contro GitHub reale: creazione come
+bozza, lettura, pubblicazione (bozza→ricette, con verifica che la bozza sia
+rimossa), modifica di ricetta pubblicata con preservazione data_inserimento,
+tag/strumento scritti con maiuscola diversa risolti alla forma canonica senza
+duplicati, tag genuinamente nuovo aggiunto a `tags.yaml` in commit separato,
+id_mismatch (422), ricetta inesistente (404), tutte le combinazioni di
+`difficoltaIcone` ai valori limite (1, 5, con e senza mezza). Non verificata
+da un browser reale l'interazione DOM/JS (righe dinamiche, precompilazione
+visuale, modal anteprima) — solo la logica e il contratto dati, identici a
+quanto un browser produrrebbe.
 
 **Porte fisse in sviluppo locale** (convenzione, non configurabile da env per
 ora): backend FastAPI su `http://localhost:8000`, sito Eleventy su
