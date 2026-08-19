@@ -12,29 +12,47 @@ Repo GitHub pubblico: https://github.com/MaxPrandtl/Ricettario_MM
 
 ## Stato del progetto
 
-**Fase attuale: definizione e brainstorming.** Ancora nessun generatore/backend reale,
-ma esistono già bozze concrete (vedi sotto) usate per validare schema dati e stile
-visivo prima di scrivere codice di produzione.
+**Fase attuale: prima iterazione funzionante end-to-end.** Backend e generatore
+statico sono reali e verificati, non solo bozze. Restano da fare: deploy (sito e
+backend ancora solo locali), editor grafico di inserimento ricette nel sito,
+PWA/stampa.
 
 **Fatto finora:**
-- Scheletro dati in `/content`: `tags.yaml` (tassonomia canonica) + 3 ricette
-  d'esempio scelte apposta per essere eterogenee — `tiramisu-al-caffe.md` (caso
-  completo: passi con foto/timer, senza video), `ragu-della-domenica.md` (caso
-  "orale": racconto + video, senza procedimento passo-passo scritto),
-  `bruschette-pomodoro-basilico.md` (caso minimo: niente copertina/video/racconto).
-  Servono a stressare lo schema del brief sui casi limite reali.
-- Bozza visiva in `/site/preview` (HTML statico, non ancora Eleventy) che renderizza
-  davvero i dati delle 3 ricette sopra: palette "quaderno di famiglia" (pergamena
-  scura + rosso conserva bruciato, non il beige/terracotta da AI-design generico),
-  Fraunces per i titoli, monospace per quantità/tempi. Contiene già: selettore tema
-  chiaro/scuro/sistema (salvato in `localStorage`, niente flash al caricamento),
-  un indice con card ricetta (`indice.html`) che è **esplicitamente segnato come
-  provvisorio** — ricerca e filtri nella barra sono finti/non funzionanti, servono
-  solo a far vedere dove andranno.
+- Scheletro dati in `/content`: `tags.yaml` + `strumenti.yaml` (tassonomie
+  canoniche) + 4 ricette d'esempio eterogenee — `tiramisu-al-caffe.md` (caso
+  completo, scaling con tutte le forme di `scala`), `ragu-della-domenica.md`
+  (caso "orale": racconto + video, senza procedimento scritto), `bruschette-
+  pomodoro-basilico.md` (caso minimo), `torta-di-mele.md` (`scalabile: false`).
+- **Backend** (`/backend`, FastAPI + PyGithub): login username/PIN (bcrypt, profili
+  in `profili.yaml` locale non versionato) + `POST /recipes` che valida
+  tag/strumenti contro le tassonomie e scrive una ricetta vera sul repo GitHub
+  pubblico via Contents API, con autore/data assegnati **server-side** dal
+  profilo autenticato (mai dal client). Verificato end-to-end contro il repo
+  reale: creazione, conflitto di slug (409), tag sconosciuto (422), credenziali
+  errate (401), autore del commit correttamente attribuito al profilo (non
+  all'account del token). Non ancora deployato: gira solo in locale
+  (`uvicorn app.main:app`), raggiungibile solo dalla stessa macchina.
+- **Generatore sito** (Eleventy 3.x + Nunjucks, root del repo `eleventy.config.js`
+  + `package.json`, template in `/site`): pagina singola per ogni ricetta
+  (`/ricette/<id>/`) più una pagina indice (`/`) con ricerca (titolo+tag+
+  ingredienti) e filtri (categoria, difficoltà, tempo, strumenti esclusi) calcolati
+  lato client su un indice JSON generato in build (`/ricette-index.json`) — nessun
+  backend coinvolto nella ricerca. `content/ricette/*.md` è letto a mano
+  (gray-matter) perché sta fuori dalla input dir di Eleventy: il meccanismo nativo
+  `collectionApi.getFilteredByGlob` filtra solo template già scoperti sotto
+  `input`, non fa una scansione filesystem indipendente (verificato leggendo il
+  sorgente del pacchetto). CSS estratto dalle bozze in un unico foglio condiviso.
+  Verificato con build reale: tutte le combinazioni di scaling (lineare, fisso,
+  moltiplicatore, scaglioni) corrette nell'HTML prodotto — corretto anche un bug
+  della bozza originale che non gestiva affatto `scala: fisso`. Non ancora
+  deployato: si avvia in locale con `npm run dev` (http://localhost:8080).
+- Bozze visive originali in `/site/preview` mantenute come archivio storico, non
+  più la fonte di verità per lo stile (quel ruolo è ora del CSS/template in `/site`).
 
-**Prossimo passo concreto:** validare/iterare sullo stile visivo con l'utente, poi
-decidere la struttura reale di navigazione tra ricette (vedi "Decisioni ancora
-aperte" — ricerca, filtri, menu) prima di costruire il generatore Eleventy vero.
+**Prossimo passo concreto, richiesto esplicitamente dall'utente:** un editor
+grafico nel sito stesso per inserire/modificare ricette, collegato all'endpoint
+`POST /recipes` già funzionante — non ancora iniziato. Dopo: deploy di backend e
+sito (Render/Railway per il backend, GitHub Pages per il sito, come da brief).
 
 ## Obiettivo del progetto
 
@@ -307,15 +325,20 @@ sorgente delle ricette. Da sviluppare per ultimo.
 
 ## Ordine di sviluppo consigliato
 
-1. ~~Scheletro repo pubblico: struttura cartelle `/content`, `tags.yaml`, 2-3 ricette
+1. ~~Scheletro repo pubblico: struttura cartelle `/content`, `tags.yaml`, ricette
    d'esempio.~~ Fatto.
-2. ~~Bozza visiva di una pagina ricetta~~ Fatto (in iterazione) — vedi "Fatto finora".
-3. Decidere la struttura di navigazione/ricerca tra ricette (punto 2 sopra) prima di
-   costruire il generatore vero, altrimenti il generatore va rifatto quando la
-   navigazione cambia.
-4. Generatore statico Eleventy che legge `/content` e produce il sito.
-5. Backend Python (`/backend`): validazione tag, login, scrittura via Contents API.
-6. PWA e generazione PDF stampabile — in coda, non bloccanti.
+2. ~~Bozza visiva di una pagina ricetta~~ Fatto — vedi "Fatto finora".
+3. ~~Struttura di navigazione/ricerca tra ricette.~~ Fatto: ricerca+filtri lato
+   client su indice JSON, vedi "Fatto finora".
+4. ~~Generatore statico Eleventy che legge `/content` e produce il sito.~~ Fatto,
+   verificato in locale.
+5. ~~Backend Python (`/backend`): validazione tag, login, scrittura via Contents
+   API.~~ Fatto, verificato end-to-end contro GitHub reale.
+6. Editor grafico di inserimento/modifica ricette nel sito, collegato al backend
+   già pronto — prossimo passo concreto.
+7. Deploy: backend su Render/Railway, sito su GitHub Pages con rebuild via GitHub
+   Actions.
+8. PWA e generazione PDF stampabile — in coda, non bloccanti.
 
 ## Convenzioni per chi lavora su questo repo
 
