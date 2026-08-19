@@ -1,0 +1,37 @@
+# Lista canonica degli strumenti di cucina "non comuni" — quelli che non si possono
+# dare per scontati (a differenza di pentole, coltelli, forno). Se una ricetta li
+# richiede va segnalato esplicitamente, per non lasciare nulla al caso a chi cucina.
+#
+# Stesso meccanismo di validazione di tags.yaml (vedi CLAUDE.md sezione "Tag /
+# categorie"): il backend valida ogni strumento inserito contro questa lista e
+# propone di aggiungerlo se manca, invece di crearne varianti silenziose.
+#
+# A differenza dei tag, gli strumenti sono pensati per essere filtrabili in ricerca
+# fin da subito (es. "mostrami solo ricette senza bimby") — vedi CLAUDE.md, decisione
+# aperta su ricerca/filtri: l'implementazione del filtro resta da progettare, ma il
+# dato deve già essere strutturato per quello, non solo testo libero in pagina.
+
+robot_da_cucina:
+  - bimby
+  - kenwood cooking chef
+  - friggitrice ad aria
+
+elettrodomestici:
+  - impastatrice
+  - planetaria
+  - frullatore a immersione
+  - frullatore
+  - mixer / tritatutto
+  - centrifuga
+  - sbattitore elettrico
+  - macchina per la pasta
+  - macchina per il pane
+  - gelatiera
+  - sottovuoto
+
+attrezzi_specifici:
+  - termometro da cucina
+  - siringa/sac à poche
+  - mandolina
+  - griglia/bistecchiera
+  - stampi particolari (es. plumcake, savarin, ciambella)

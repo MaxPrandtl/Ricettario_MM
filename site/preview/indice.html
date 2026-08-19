@@ -1,0 +1,746 @@
+<title>Ricettario — indice ricette</title>
+<script>
+  (function () {
+    var saved = localStorage.getItem('ricettario-tema');
+    if (saved === 'light' || saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+  })();
+</script>
+<style>
+  @font-face {
+    font-family: 'Fraunces';
+    src: local('Fraunces');
+    font-weight: 300 700;
+  }
+
+  :root {
+    --paper: #efe6d3;
+    --paper-raised: #f8f1e2;
+    --ink: #2a2118;
+    --ink-soft: #5a4c3c;
+    --rule: #cdbe9e;
+    --accent: #a8341f;
+    --accent-ink: #faf1e6;
+    --tag-bg: #e2d4b4;
+    --tag-ink: #453a29;
+    --shadow: rgba(42, 33, 24, 0.18);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --paper: #221c15;
+      --paper-raised: #2b241b;
+      --ink: #ede3d0;
+      --ink-soft: #b9ab90;
+      --rule: #4a4028;
+      --accent: #e2694a;
+      --accent-ink: #241109;
+      --tag-bg: #3a3122;
+      --tag-ink: #d9cba8;
+      --shadow: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #221c15;
+    --paper-raised: #2b241b;
+    --ink: #ede3d0;
+    --ink-soft: #b9ab90;
+    --rule: #4a4028;
+    --accent: #e2694a;
+    --accent-ink: #241109;
+    --tag-bg: #3a3122;
+    --tag-ink: #d9cba8;
+    --shadow: rgba(0, 0, 0, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -5%, color-mix(in srgb, var(--accent) 7%, transparent), transparent),
+      radial-gradient(ellipse 700px 500px at 100% 10%, color-mix(in srgb, var(--ink) 4%, transparent), transparent);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, 'Iowan Old Style', serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px clamp(16px, 5vw, 28px);
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .brand {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  .theme-switch {
+    display: inline-flex;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 2px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .theme-switch button {
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    line-height: 1;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 6px 9px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .theme-switch button:hover { background: var(--tag-bg); }
+  .theme-switch button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .theme-switch button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: clamp(20px, 5vw, 56px) clamp(16px, 5vw, 28px) 100px;
+  }
+
+  .intro {
+    max-width: 62ch;
+    margin-bottom: 34px;
+  }
+  .intro .kicker {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+  .intro h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.6rem);
+    line-height: 1.08;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+  .intro p {
+    font-size: 1.02rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* ---------- Nota "solo bozza di navigazione" ---------- */
+  .draft-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-family: var(--sans);
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    background: var(--paper-raised);
+    border: 1px dashed var(--rule);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 22px 0 42px;
+  }
+  .draft-note strong { color: var(--ink); }
+
+  /* ---------- Barra ricerca/filtri: placeholder non funzionante,
+     serve solo a far vedere dove andrà quando la costruiremo ---------- */
+  .search-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 36px;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 220px;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    padding: 11px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    color: var(--ink-soft);
+  }
+  .filter-pill {
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px;
+  }
+
+  .card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .card:hover, .card:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px -16px var(--shadow);
+  }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .card-cover {
+    aspect-ratio: 16/10;
+    background: linear-gradient(155deg, color-mix(in srgb, var(--accent) 26%, var(--paper-raised)), var(--paper-raised) 65%);
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+  }
+  .card-cover.is-empty {
+    background: repeating-linear-gradient(135deg, var(--paper-raised), var(--paper-raised) 10px, color-mix(in srgb, var(--rule) 40%, transparent) 10px, color-mix(in srgb, var(--rule) 40%, transparent) 11px);
+  }
+  .card-difficulty {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: color-mix(in srgb, var(--ink) 55%, transparent);
+    color: var(--accent-ink);
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+
+  .card-body { padding: 14px 16px 16px; }
+  .card-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin: 0 0 8px;
+    text-wrap: balance;
+  }
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  .card-tags .tag {
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--tag-bg);
+    color: var(--tag-ink);
+  }
+  .card-meta {
+    display: flex;
+    gap: 12px;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+
+  section.recipe-section {
+    margin-top: 90px;
+    scroll-margin-top: 80px;
+  }
+  .recipe-anchor-label {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .recipe-anchor-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+  .back-to-index {
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    color: var(--accent);
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 18px;
+  }
+  .back-to-index:hover { text-decoration: underline; }
+
+  @media print {
+    .topbar, .search-row, .draft-note, .grid, .back-to-index { display: none; }
+  }
+</style>
+
+<div class="topbar">
+  <span class="brand">📖 Ricettario</span>
+  <div class="theme-switch" role="group" aria-label="Tema colore">
+    <button type="button" data-theme-choice="light" aria-pressed="false" title="Tema chiaro">☀️</button>
+    <button type="button" data-theme-choice="dark" aria-pressed="false" title="Tema scuro">🌙</button>
+    <button type="button" data-theme-choice="system" aria-pressed="false" title="Segui il sistema">🖥️</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="intro">
+    <p class="kicker">Bozza di navigazione</p>
+    <h1>Tutte le ricette</h1>
+    <p>In futuro qui ci saranno ricerca testuale, filtri per tag/tempo/difficoltà e forse un menu a tendina per categoria — ancora da progettare. Per ora: tre ricette d'esempio, cliccabili come card, che scorrono più sotto sulla stessa pagina.</p>
+  </div>
+
+  <div class="draft-note">
+    <span>⚠️</span>
+    <span><strong>Solo per questa fase di bozza:</strong> le card sotto sono un indice provvisorio per poter scorrere tra le ricette d'esempio senza link rotti tra pagine separate. La struttura reale (ricerca, filtri, quante ricette mostrare, paginazione) è una decisione ancora aperta — vedi CLAUDE.md.</span>
+  </div>
+
+  <div class="search-row">
+    <span class="search-box">🔍 Cerca una ricetta… <em style="opacity:.6">(non ancora funzionante)</em></span>
+    <span class="filter-pill">Categoria ▾</span>
+    <span class="filter-pill">Tempo ▾</span>
+    <span class="filter-pill">Difficoltà ▾</span>
+  </div>
+
+  <div class="grid">
+    <a class="card" href="#tiramisu-al-caffe">
+      <div class="card-cover"><span class="card-difficulty">Facile</span></div>
+      <div class="card-body">
+        <h3 class="card-title">Tiramisù al caffè</h3>
+        <div class="card-tags">
+          <span class="tag">dolce</span>
+          <span class="tag">senza cottura</span>
+        </div>
+        <div class="card-meta">
+          <span>⏱ 30 min</span>
+          <span>🍽 6 porz.</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="card" href="#ragu-della-domenica">
+      <div class="card-cover"><span class="card-difficulty">Medio</span></div>
+      <div class="card-body">
+        <h3 class="card-title">Ragù della domenica</h3>
+        <div class="card-tags">
+          <span class="tag">primo</span>
+          <span class="tag">festivo</span>
+        </div>
+        <div class="card-meta">
+          <span>⏱ 3 h 20</span>
+          <span>🍽 8 porz.</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="card" href="#bruschette-pomodoro-basilico">
+      <div class="card-cover is-empty"><span class="card-difficulty">Facile</span></div>
+      <div class="card-body">
+        <h3 class="card-title">Bruschette al pomodoro e basilico</h3>
+        <div class="card-tags">
+          <span class="tag">antipasto</span>
+          <span class="tag">vegano</span>
+        </div>
+        <div class="card-meta">
+          <span>⏱ 20 min</span>
+          <span>🍽 4 porz.</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="card" href="#torta-di-mele">
+      <div class="card-cover"><span class="card-difficulty">Facile</span></div>
+      <div class="card-body">
+        <h3 class="card-title">Torta di mele</h3>
+        <div class="card-tags">
+          <span class="tag">dolce</span>
+          <span class="tag">al forno</span>
+        </div>
+        <div class="card-meta">
+          <span>⏱ 1 h 10</span>
+          <span>🍽 8 porz. · fissa</span>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- ============================================================
+       Da qui in giù: le quattro ricette complete, una sotto l'altra,
+       raggiungibili tramite ancora (#id) dalle card sopra.
+       Nel sito Eleventy reale saranno pagine separate con URL propri
+       (es. /ricette/tiramisu-al-caffe/) — qui stanno sulla stessa
+       pagina solo per poter scorrere la bozza senza link rotti.
+     ============================================================ -->
+
+  <section class="recipe-section" id="tiramisu-al-caffe">
+    <a class="back-to-index" href="#">↑ Torna all'indice</a>
+    <p class="recipe-anchor-label">content/ricette/tiramisu-al-caffe.md</p>
+
+    <p class="kicker" style="margin-top:0">Dolce · Senza cottura</p>
+    <h1 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(2.1rem,6vw,3.1rem);line-height:1.05;margin:0 0 16px;text-wrap:balance;">Tiramisù al caffè</h1>
+    <div class="card-tags" style="margin-bottom:22px;">
+      <span class="tag">dolce</span>
+      <span class="tag">senza cottura</span>
+      <span class="tag">tradizione di famiglia</span>
+      <span class="tag">festivo</span>
+    </div>
+
+    <dl class="stat-row-live" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin-bottom:18px;">
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Prep.</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">30 min</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Cottura</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">—</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Porzioni</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;" data-live="porzioni">6</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Difficoltà</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">Facile</dd></div>
+    </dl>
+
+    <!-- ---------- Strumenti necessari: solo se la ricetta ne dichiara ---------- -->
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:24px;font-family:var(--sans);font-size:.82rem;color:var(--ink-soft);">
+      <span style="font-weight:600;color:var(--ink);">🔧 Strumenti necessari:</span>
+      <span class="tag" style="background:var(--tag-bg);color:var(--tag-ink);">planetaria</span>
+      <span style="font-style:italic;">— facoltativa, velocizza il montaggio</span>
+    </div>
+
+    <div style="border-radius:14px;overflow:hidden;box-shadow:0 10px 28px -14px var(--shadow);aspect-ratio:16/10;background:linear-gradient(155deg,color-mix(in srgb,var(--accent) 30%,var(--paper-raised)),var(--paper-raised) 60%);display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+      <span style="font-family:var(--sans);font-size:.72rem;color:var(--accent-ink);background:color-mix(in srgb,var(--ink) 55%,transparent);padding:5px 10px;border-radius:6px;">foto copertina · storage esterno</span>
+    </div>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;display:flex;align-items:baseline;gap:10px;">Ingredienti</h2>
+
+    <!-- ---------- Toggle porzioni: scaling REALE, calcolato in JS ---------- -->
+    <div class="servings-toggle" style="font-family:var(--sans);font-size:.82rem;color:var(--ink-soft);margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+      per
+      <span class="pill-group tiramisu-servings" style="display:inline-flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden;">
+        <button type="button" data-servings="1" style="font-family:var(--mono);font-size:.8rem;border:none;background:transparent;color:var(--ink-soft);padding:5px 12px;cursor:pointer;">1</button>
+        <button type="button" data-servings="2" style="font-family:var(--mono);font-size:.8rem;border:none;background:transparent;color:var(--ink-soft);padding:5px 12px;cursor:pointer;">2</button>
+        <button type="button" data-servings="4" style="font-family:var(--mono);font-size:.8rem;border:none;background:transparent;color:var(--ink-soft);padding:5px 12px;cursor:pointer;">4</button>
+        <button type="button" data-servings="6" aria-current="true" style="font-family:var(--mono);font-size:.8rem;border:none;background:var(--accent);color:var(--accent-ink);font-weight:600;padding:5px 12px;cursor:pointer;">6</button>
+        <button type="button" data-servings="8" style="font-family:var(--mono);font-size:.8rem;border:none;background:transparent;color:var(--ink-soft);padding:5px 12px;cursor:pointer;">8</button>
+      </span>
+      porzioni
+    </div>
+
+    <ul class="tiramisu-ingredienti" style="list-style:none;margin:0;padding:0;display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;">
+      <li data-base="300" data-scale="linear" style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>savoiardi</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;"><b data-qty></b> g</span></li>
+      <li data-base="500" data-scale="linear" style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>mascarpone</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;"><b data-qty></b> g</span></li>
+      <li data-scale="steps" data-steps='{"1":2,"2":2,"4":4,"6":4,"8":8}' style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;align-items:baseline;"><span>uova <em style="font-size:.72rem;opacity:.7">— a scaglioni, mai frazioni</em></span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;"><b data-qty></b> pz</span></li>
+      <li data-base="120" data-scale="linear" style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>zucchero</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;"><b data-qty></b> g</span></li>
+      <li data-base="300" data-scale="linear" style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>caffè espresso</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;"><b data-qty></b> ml</span></li>
+      <li data-base="20" data-scale="0.7" style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;align-items:baseline;"><span>cacao amaro in polvere <em style="font-size:.72rem;opacity:.7">— scala al 70%</em></span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;"><b data-qty></b> g</span></li>
+    </ul>
+    <p style="font-family:var(--sans);font-size:.76rem;color:var(--ink-soft);margin:10px 0 0;">Le quantità sopra sono ricalcolate dal vivo — non tutti gli ingredienti scalano allo stesso modo: uova a scaglioni, cacao proporzionalmente ridotto. Regola definita per ogni ricetta, vedi CLAUDE.md.</p>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Procedimento</h2>
+    <ol style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:20px;">
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">1</span><p style="margin:0;">Separare i tuorli dagli albumi. Montare i tuorli con lo zucchero fino a ottenere un composto chiaro e spumoso.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">2</span><p style="margin:0;">Incorporare il mascarpone ai tuorli montati, mescolando delicatamente dal basso verso l'alto.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">3</span><p style="margin:0;">Montare gli albumi a neve ferma e unirli al composto, con movimenti delicati per non smontare il tutto.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">4</span><p style="margin:0;">Inzuppare rapidamente i savoiardi nel caffè freddo e formare il primo strato sul fondo della teglia.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">5</span><p style="margin:0;">Coprire con crema al mascarpone. Ripetere con un secondo strato di savoiardi e crema.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">6</span><div><p style="margin:0 0 6px;">Livellare la superficie e lasciare riposare in frigorifero.</p><span style="display:inline-flex;font-family:var(--mono);font-size:.78rem;background:var(--tag-bg);color:var(--tag-ink);padding:4px 10px;border-radius:999px;">⏱ 4 h di riposo</span></div></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">7</span><p style="margin:0;">Spolverare con cacao amaro poco prima di servire.</p></li>
+    </ol>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Note</h2>
+    <div style="background:var(--paper-raised);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:16px 20px;color:var(--ink-soft);">
+      <p style="margin:0 0 10px;">Ricetta di casa, quella delle domeniche. Con le uova crude: se è per bambini o donne in gravidanza, meglio una versione pastorizzata della crema.</p>
+      <p style="margin:0;"><strong style="color:var(--ink);">Variante:</strong> si può fare anche senza uova, montando solo panna e mascarpone.</p>
+    </div>
+  </section>
+
+  <section class="recipe-section" id="ragu-della-domenica">
+    <a class="back-to-index" href="#">↑ Torna all'indice</a>
+    <p class="recipe-anchor-label">content/ricette/ragu-della-domenica.md</p>
+
+    <p class="kicker" style="margin-top:0">Primo · Al forno</p>
+    <h1 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(2.1rem,6vw,3.1rem);line-height:1.05;margin:0 0 16px;text-wrap:balance;">Ragù della domenica</h1>
+    <div class="card-tags" style="margin-bottom:22px;">
+      <span class="tag">primo</span>
+      <span class="tag">bollito</span>
+      <span class="tag">tradizione di famiglia</span>
+      <span class="tag">festivo</span>
+      <span class="tag">inverno</span>
+    </div>
+
+    <dl style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin-bottom:16px;">
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Prep.</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">20 min</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Cottura</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">3 h</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Porzioni</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">8</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Difficoltà</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">Medio</dd></div>
+    </dl>
+
+    <a href="#" onclick="return false;" style="display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;font-family:var(--sans);font-size:.82rem;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--rule);padding:7px 14px;border-radius:999px;background:var(--paper-raised);">▶ Guarda il video della preparazione</a>
+
+    <div style="border-radius:14px;overflow:hidden;box-shadow:0 10px 28px -14px var(--shadow);aspect-ratio:16/10;background:linear-gradient(155deg,color-mix(in srgb,var(--accent) 30%,var(--paper-raised)),var(--paper-raised) 60%);display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+      <span style="font-family:var(--sans);font-size:.72rem;color:var(--accent-ink);background:color-mix(in srgb,var(--ink) 55%,transparent);padding:5px 10px;border-radius:6px;">foto copertina · storage esterno</span>
+    </div>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Il racconto</h2>
+    <p style="font-size:1.08rem;font-style:italic;color:var(--ink-soft);line-height:1.7;padding-left:18px;border-left:3px solid var(--rule);margin:0;">Il ragù della domenica di nonna Anna: quello che profuma casa dalla mattina, e che si mette sul fuoco appena tornati da messa. Non esiste una vera ricetta scritta — questa è la versione più fedele a memoria, ricostruita insieme a lei.</p>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Ingredienti</h2>
+    <ul style="list-style:none;margin:0;padding:0;display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;">
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>carne macinata mista (manzo e maiale)</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">600 g</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>salsiccia</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">200 g</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>passata di pomodoro</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">1000 ml</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>cipolla</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">1 pz</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>carota</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">1 pz</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>sedano</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">1 pz</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>vino rosso</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">150 ml</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>olio extravergine d'oliva</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">3 cucchiai</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>sale</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">q.b.</span></li>
+    </ul>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Procedimento</h2>
+    <p style="font-family:var(--sans);font-size:.9rem;color:var(--ink-soft);background:var(--paper-raised);border:1px dashed var(--rule);border-radius:10px;padding:16px 18px;">Questa ricetta non ha ancora un procedimento scritto passo-passo — è tramandata a voce. Il racconto qui sopra e il video ne raccontano lo spirito; gli ingredienti bastano a chi la conosce già.</p>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Note</h2>
+    <div style="background:var(--paper-raised);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:16px 20px;color:var(--ink-soft);">
+      <p style="margin:0 0 10px;">Il segreto è la cottura lunga a fuoco bassissimo, mai a bollore vivace. Se si asciuga troppo, aggiungere un mestolo di acqua calda, mai fredda.</p>
+      <p style="margin:0;">Si conserva 3-4 giorni in frigo, ed è ancora più buono il giorno dopo. Congela bene fino a 3 mesi.</p>
+    </div>
+  </section>
+
+  <section class="recipe-section" id="bruschette-pomodoro-basilico">
+    <a class="back-to-index" href="#">↑ Torna all'indice</a>
+    <p class="recipe-anchor-label">content/ricette/bruschette-pomodoro-basilico.md</p>
+
+    <p class="kicker" style="margin-top:0">Antipasto · Estate</p>
+    <h1 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(2.1rem,6vw,3.1rem);line-height:1.05;margin:0 0 16px;text-wrap:balance;">Bruschette al pomodoro e basilico</h1>
+    <div class="card-tags" style="margin-bottom:22px;">
+      <span class="tag">antipasto</span>
+      <span class="tag">aperitivo</span>
+      <span class="tag">vegano</span>
+      <span class="tag">estate</span>
+      <span class="tag">tutti i giorni</span>
+    </div>
+
+    <dl style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin-bottom:24px;">
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Prep.</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">15 min</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Cottura</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">5 min</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Porzioni</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">4</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Difficoltà</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">Facile</dd></div>
+    </dl>
+
+    <p style="font-family:var(--sans);font-size:.8rem;color:var(--ink-soft);border:1px dashed var(--rule);border-radius:14px;padding:22px;text-align:center;margin-bottom:8px;">Nessuna foto di copertina per questa ricetta — campo facoltativo.</p>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Ingredienti</h2>
+    <ul style="list-style:none;margin:0;padding:0;display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;">
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>pane casereccio</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">8 fette</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>pomodori maturi</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">4 pz</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>basilico fresco</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">1 mazzetto</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>aglio</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">1 spicchio</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>olio extravergine d'oliva</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">4 cucchiai</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>sale</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">q.b.</span></li>
+    </ul>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Procedimento</h2>
+    <ol style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:20px;">
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">1</span><p style="margin:0;">Tagliare i pomodori a cubetti piccoli, condire con sale, olio e basilico spezzettato a mano. Lasciar insaporire qualche minuto.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">2</span><div><p style="margin:0 0 6px;">Tostare le fette di pane in forno o su una griglia, finché sono dorate e croccanti.</p><span style="display:inline-flex;font-family:var(--mono);font-size:.78rem;background:var(--tag-bg);color:var(--tag-ink);padding:4px 10px;border-radius:999px;">⏱ 5 min</span></div></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">3</span><p style="margin:0;">Strofinare leggermente uno spicchio d'aglio sul pane ancora caldo.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">4</span><p style="margin:0;">Distribuire il composto di pomodoro sulle fette e servire subito, finché il pane è ancora croccante.</p></li>
+    </ol>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Note</h2>
+    <div style="background:var(--paper-raised);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:16px 20px;color:var(--ink-soft);">
+      <p style="margin:0;">Semplice, veloce, estiva. Meglio farla all'ultimo momento: se il pane sta troppo col pomodoro sopra si ammorbidisce e perde la croccantezza.</p>
+    </div>
+  </section>
+
+  <section class="recipe-section" id="torta-di-mele">
+    <a class="back-to-index" href="#">↑ Torna all'indice</a>
+    <p class="recipe-anchor-label">content/ricette/torta-di-mele.md</p>
+
+    <p class="kicker" style="margin-top:0">Dolce · Al forno</p>
+    <h1 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(2.1rem,6vw,3.1rem);line-height:1.05;margin:0 0 16px;text-wrap:balance;">Torta di mele</h1>
+    <div class="card-tags" style="margin-bottom:22px;">
+      <span class="tag">dolce</span>
+      <span class="tag">al forno</span>
+      <span class="tag">tradizione di famiglia</span>
+      <span class="tag">tutto l'anno</span>
+    </div>
+
+    <dl style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin-bottom:18px;">
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Prep.</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">25 min</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Cottura</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">45 min</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Porzioni</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">8</dd></div>
+      <div style="background:var(--paper-raised);padding:12px 10px;text-align:center;"><dt style="font-family:var(--sans);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;">Difficoltà</dt><dd style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:600;margin:0;">Facile</dd></div>
+    </dl>
+
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:24px;font-family:var(--sans);font-size:.82rem;color:var(--ink-soft);">
+      <span style="font-weight:600;color:var(--ink);">🔧 Strumenti necessari:</span>
+      <span class="tag" style="background:var(--tag-bg);color:var(--tag-ink);">sbattitore elettrico</span>
+    </div>
+
+    <div style="border-radius:14px;overflow:hidden;box-shadow:0 10px 28px -14px var(--shadow);aspect-ratio:16/10;background:linear-gradient(155deg,color-mix(in srgb,var(--accent) 30%,var(--paper-raised)),var(--paper-raised) 60%);display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+      <span style="font-family:var(--sans);font-size:.72rem;color:var(--accent-ink);background:color-mix(in srgb,var(--ink) 55%,transparent);padding:5px 10px;border-radius:6px;">foto copertina · storage esterno</span>
+    </div>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Ingredienti</h2>
+
+    <!-- ---------- scalabile: false → niente toggle porzioni, nota al suo posto ---------- -->
+    <div style="display:flex;gap:10px;align-items:flex-start;font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);background:var(--paper-raised);border:1px dashed var(--rule);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+      <span title="Ricetta non scalabile" style="flex-shrink:0;">📏</span>
+      <span><strong style="color:var(--ink);">Dosi fisse per questa ricetta.</strong> Ricetta pensata per uno stampo da 24 cm: cambiando le dosi cambiano anche tempo di cottura e tenuta della torta in forno, non basta moltiplicare i grammi. Per uno stampo più grande serve una ricetta a sé, non ancora presente nel ricettario.</span>
+    </div>
+
+    <ul style="list-style:none;margin:0;padding:0;display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;">
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>mele</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">4 pz</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>farina 00</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">300 g</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>zucchero</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">200 g</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>uova</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">3 pz</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>burro</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">100 g</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>latte</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">100 ml</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>lievito per dolci</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">16 g</span></li>
+      <li style="background:var(--paper-raised);padding:11px 16px;display:flex;justify-content:space-between;"><span>scorza di limone</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">1 pz</span></li>
+    </ul>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Procedimento</h2>
+    <ol style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:20px;">
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">1</span><p style="margin:0;">Sbucciare le mele, tagliarne metà a fettine sottili e metà a cubetti.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">2</span><p style="margin:0;">Montare le uova con lo zucchero fino a ottenere un composto chiaro e spumoso.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">3</span><p style="margin:0;">Aggiungere il burro fuso intiepidito, il latte e la scorza di limone grattugiata, mescolando bene.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">4</span><p style="margin:0;">Incorporare la farina setacciata con il lievito, poco alla volta, e infine i cubetti di mela.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">5</span><p style="margin:0;">Versare l'impasto in uno stampo da 24 cm imburrato e infarinato. Disporre le fettine di mela sulla superficie.</p></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">6</span><div><p style="margin:0 0 6px;">Cuocere in forno statico preriscaldato a 180°C.</p><span style="display:inline-flex;font-family:var(--mono);font-size:.78rem;background:var(--tag-bg);color:var(--tag-ink);padding:4px 10px;border-radius:999px;">⏱ 45 min</span></div></li>
+      <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;"><span style="font-family:var(--mono);font-weight:700;width:36px;height:36px;border-radius:50%;background:var(--paper-raised);border:1.5px solid var(--rule);color:var(--accent);display:flex;align-items:center;justify-content:center;">7</span><p style="margin:0;">Verificare la cottura con uno stecchino: deve uscire asciutto. Lasciar intiepidire nello stampo prima di sformare.</p></li>
+    </ol>
+
+    <h2 style="font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.5rem;margin:40px 0 18px;">Note</h2>
+    <div style="background:var(--paper-raised);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:16px 20px;color:var(--ink-soft);">
+      <p style="margin:0;">Torta semplice, di quelle che si fanno "a occhio" quando ci sono troppe mele in casa. Si mantiene morbida per 3-4 giorni, coperta, a temperatura ambiente.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  (function () {
+    var STORAGE_KEY = 'ricettario-tema';
+    var root = document.documentElement;
+    var buttons = document.querySelectorAll('[data-theme-choice]');
+
+    function currentChoice() {
+      var saved = localStorage.getItem(STORAGE_KEY);
+      return (saved === 'light' || saved === 'dark') ? saved : 'system';
+    }
+
+    function applyChoice(choice) {
+      if (choice === 'system') {
+        root.removeAttribute('data-theme');
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        root.setAttribute('data-theme', choice);
+        localStorage.setItem(STORAGE_KEY, choice);
+      }
+      buttons.forEach(function (btn) {
+        btn.setAttribute('aria-pressed', String(btn.dataset.themeChoice === choice));
+      });
+    }
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        applyChoice(btn.dataset.themeChoice);
+      });
+    });
+
+    applyChoice(currentChoice());
+  })();
+</script>
+
+<script>
+  // Scaling porzioni del tiramisù — dimostra le regole per-ingrediente definite
+  // in CLAUDE.md: "linear" (default, regola del 3), un moltiplicatore fisso
+  // (es. "0.7" = scala al 70% del fattore lineare), o "steps" (scaglioni espliciti
+  // per porzioni, quando né lineare né fisso ha senso — es. non si scrive "2.66 uova").
+  // PORZIONI_BASE = 6, coerente col frontmatter di tiramisu-al-caffe.md.
+  (function () {
+    var PORZIONI_BASE = 6;
+    var buttons = document.querySelectorAll('.tiramisu-servings [data-servings]');
+    var righe = document.querySelectorAll('.tiramisu-ingredienti li');
+    var displayPorzioni = document.querySelector('[data-live="porzioni"]');
+
+    function formatQty(n) {
+      // Arrotonda a max 1 decimale, ma mostra intero se non serve la virgola.
+      var r = Math.round(n * 10) / 10;
+      return Number.isInteger(r) ? String(r) : String(r).replace('.', ',');
+    }
+
+    function ricalcola(porzioni) {
+      var fattore = porzioni / PORZIONI_BASE;
+
+      righe.forEach(function (li) {
+        var tipo = li.dataset.scale;
+        var qtyEl = li.querySelector('[data-qty]');
+        var valore;
+
+        if (tipo === 'steps') {
+          var scaglioni = JSON.parse(li.dataset.steps);
+          valore = scaglioni[String(porzioni)];
+        } else if (tipo === 'linear') {
+          valore = formatQty(parseFloat(li.dataset.base) * fattore);
+        } else {
+          // moltiplicatore numerico esplicito (es. "0.7")
+          var moltiplicatore = parseFloat(tipo);
+          valore = formatQty(parseFloat(li.dataset.base) * fattore * moltiplicatore);
+        }
+
+        qtyEl.textContent = valore;
+      });
+
+      if (displayPorzioni) displayPorzioni.textContent = porzioni;
+    }
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        buttons.forEach(function (b) {
+          b.setAttribute('aria-current', 'false');
+          b.style.background = 'transparent';
+          b.style.color = 'var(--ink-soft)';
+          b.style.fontWeight = 'normal';
+        });
+        btn.setAttribute('aria-current', 'true');
+        btn.style.background = 'var(--accent)';
+        btn.style.color = 'var(--accent-ink)';
+        btn.style.fontWeight = '600';
+        ricalcola(parseInt(btn.dataset.servings, 10));
+      });
+    });
+
+    ricalcola(PORZIONI_BASE);
+  })();
+</script>

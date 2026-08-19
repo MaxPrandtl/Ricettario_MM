@@ -1,0 +1,25 @@
+# Config locale di Claude Code — non è contenuto di progetto
+.claude/
+
+# Segreti — MAI nel repo pubblico (vedi CLAUDE.md, sezione Autenticazione/profili)
+.env
+.env.*
+*.key
+*.pem
+secrets.yaml
+profili.yaml
+
+# Python (backend, quando esisterà)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node (generatore statico, quando esisterà)
+node_modules/
+_site/
+dist/
+
+# File di sistema
+.DS_Store
+Thumbs.db

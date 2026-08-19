@@ -1,0 +1,53 @@
+# Lista canonica dei tag ammessi per le ricette.
+#
+# Il backend valida ogni tag inserito contro questa lista: se un tag non esiste,
+# propone di aggiungerlo invece di crearlo silenziosamente con varianti diverse
+# (refusi, maiuscole/minuscole, sinonimi). Vedi CLAUDE.md sezione "Tag / categorie".
+#
+# Organizzati in gruppi solo per leggibilità di questo file: nello schema ricetta
+# (campo `categorie`) sono una lista piatta, senza gruppo di appartenenza.
+
+pasto:
+  - colazione
+  - antipasto
+  - primo
+  - secondo
+  - contorno
+  - dolce
+  - merenda
+  - aperitivo
+
+tipo_piatto:
+  - senza cottura
+  - lievitato
+  - al forno
+  - in padella
+  - bollito
+  - fritto
+  - crudo
+  - marinato
+
+dieta:
+  - vegetariano
+  - vegano
+  - senza glutine
+  - senza lattosio
+
+occasione:
+  - tutti i giorni
+  - festivo
+  - compleanno
+  - natale
+  - pasqua
+
+origine:
+  - tradizione di famiglia
+  - italiana
+  - internazionale
+
+stagione:
+  - primavera
+  - estate
+  - autunno
+  - inverno
+  - tutto l'anno

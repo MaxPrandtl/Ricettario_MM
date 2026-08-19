@@ -1,0 +1,521 @@
+<title>Ragù della domenica</title>
+<script>
+  (function () {
+    var saved = localStorage.getItem('ricettario-tema');
+    if (saved === 'light' || saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+  })();
+</script>
+<style>
+  @font-face {
+    font-family: 'Fraunces';
+    src: local('Fraunces');
+    font-weight: 300 700;
+  }
+
+  :root {
+    --paper: #efe6d3;
+    --paper-raised: #f8f1e2;
+    --ink: #2a2118;
+    --ink-soft: #5a4c3c;
+    --rule: #cdbe9e;
+    --accent: #a8341f;
+    --accent-ink: #faf1e6;
+    --tag-bg: #e2d4b4;
+    --tag-ink: #453a29;
+    --shadow: rgba(42, 33, 24, 0.18);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --paper: #221c15;
+      --paper-raised: #2b241b;
+      --ink: #ede3d0;
+      --ink-soft: #b9ab90;
+      --rule: #4a4028;
+      --accent: #e2694a;
+      --accent-ink: #241109;
+      --tag-bg: #3a3122;
+      --tag-ink: #d9cba8;
+      --shadow: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #221c15;
+    --paper-raised: #2b241b;
+    --ink: #ede3d0;
+    --ink-soft: #b9ab90;
+    --rule: #4a4028;
+    --accent: #e2694a;
+    --accent-ink: #241109;
+    --tag-bg: #3a3122;
+    --tag-ink: #d9cba8;
+    --shadow: rgba(0, 0, 0, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -5%, color-mix(in srgb, var(--accent) 7%, transparent), transparent),
+      radial-gradient(ellipse 700px 500px at 100% 10%, color-mix(in srgb, var(--ink) 4%, transparent), transparent);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, 'Iowan Old Style', serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: clamp(20px, 5vw, 56px) clamp(16px, 5vw, 28px) 80px;
+  }
+
+  .meta-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 22px;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px clamp(16px, 5vw, 28px);
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .topbar-nav {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    font-family: var(--sans);
+    font-size: 0.82rem;
+  }
+  .topbar-nav a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 6px 11px;
+    border-radius: 7px;
+  }
+  .topbar-nav a:hover { background: var(--tag-bg); color: var(--tag-ink); }
+  .topbar-nav a[aria-current="page"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+  .theme-switch {
+    display: inline-flex;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 2px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .theme-switch button {
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    line-height: 1;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 6px 9px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .theme-switch button:hover { background: var(--tag-bg); }
+  .theme-switch button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .theme-switch button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .hero { margin-bottom: 34px; }
+
+  .kicker {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(2.1rem, 6vw, 3.1rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 16px;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 26px;
+  }
+  .tag {
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: var(--tag-bg);
+    color: var(--tag-ink);
+    white-space: nowrap;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .stat {
+    background: var(--paper-raised);
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .stat dt {
+    font-family: var(--sans);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 4px;
+  }
+  .stat dd {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .cover {
+    margin: 28px 0 8px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 10px 28px -14px var(--shadow);
+    aspect-ratio: 16/10;
+    background:
+      linear-gradient(155deg, color-mix(in srgb, var(--accent) 30%, var(--paper-raised)), var(--paper-raised) 60%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .cover::after {
+    content: "foto copertina · storage esterno";
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    color: var(--accent-ink);
+    background: color-mix(in srgb, var(--ink) 55%, transparent);
+    padding: 5px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.03em;
+  }
+
+  .video-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid var(--rule);
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: var(--paper-raised);
+  }
+  .video-link:hover { background: var(--tag-bg); }
+
+  section { margin-top: 46px; }
+
+  h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0 0 18px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  h2::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+    transform: translateY(-4px);
+  }
+
+  /* ---------- Racconto: storytelling opzionale, trattato come testo distinto ---------- */
+  .racconto {
+    font-size: 1.08rem;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    padding-left: 18px;
+    border-left: 3px solid var(--rule);
+    margin: 0 0 8px;
+  }
+
+  .servings-toggle {
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .servings-toggle .pill-group {
+    display: inline-flex;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .servings-toggle button {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 5px 12px;
+    cursor: default;
+  }
+  .servings-toggle button[aria-current="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+
+  ul.ingredienti {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  ul.ingredienti li {
+    background: var(--paper-raised);
+    padding: 11px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 0.98rem;
+  }
+  ul.ingredienti .qty {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 0.92rem;
+  }
+
+  /* ---------- Avviso "nessun procedimento scritto" ---------- */
+  .empty-state {
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    background: var(--paper-raised);
+    border: 1px dashed var(--rule);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+
+  .note {
+    background: var(--paper-raised);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    font-size: 0.96rem;
+    color: var(--ink-soft);
+  }
+  .note p { margin: 0 0 10px; }
+  .note p:last-child { margin-bottom: 0; }
+  .note strong { color: var(--ink); }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 480px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .cover, .meta-strip, .video-link { display: none; }
+  }
+</style>
+
+<div class="topbar">
+  <nav class="topbar-nav" aria-label="Ricette di esempio">
+    <a href="tiramisu-al-caffe.html">Tiramisù al caffè</a>
+    <a href="#" aria-current="page">Ragù della domenica</a>
+    <a href="bruschette-pomodoro-basilico.html">Bruschette</a>
+  </nav>
+  <div class="theme-switch" role="group" aria-label="Tema colore">
+    <button type="button" data-theme-choice="light" aria-pressed="false" title="Tema chiaro">☀️</button>
+    <button type="button" data-theme-choice="dark" aria-pressed="false" title="Tema scuro">🌙</button>
+    <button type="button" data-theme-choice="system" aria-pressed="false" title="Segui il sistema">🖥️</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="meta-strip">
+    <span>content/ricette/ragu-della-domenica.md</span>
+    <span>bozza di stile · non definitivo</span>
+  </div>
+
+  <div class="hero">
+    <p class="kicker">Primo · Al forno</p>
+    <h1>Ragù della domenica</h1>
+    <div class="tags">
+      <span class="tag">primo</span>
+      <span class="tag">bollito</span>
+      <span class="tag">tradizione di famiglia</span>
+      <span class="tag">festivo</span>
+      <span class="tag">inverno</span>
+    </div>
+    <dl class="stat-row">
+      <div class="stat"><dt>Prep.</dt><dd>20 min</dd></div>
+      <div class="stat"><dt>Cottura</dt><dd>3 h</dd></div>
+      <div class="stat"><dt>Porzioni</dt><dd>8</dd></div>
+      <div class="stat"><dt>Difficoltà</dt><dd>Medio</dd></div>
+    </dl>
+    <a class="video-link" href="#" onclick="return false;">▶ Guarda il video della preparazione</a>
+  </div>
+
+  <div class="cover"></div>
+
+  <section>
+    <h2>Il racconto</h2>
+    <p class="racconto">Il ragù della domenica di nonna Anna: quello che profuma casa dalla mattina, e che si mette sul fuoco appena tornati da messa. Non esiste una vera ricetta scritta — questa è la versione più fedele a memoria, ricostruita insieme a lei.</p>
+  </section>
+
+  <section>
+    <h2>Ingredienti</h2>
+    <div class="servings-toggle">
+      per
+      <span class="pill-group">
+        <button aria-current="false">4</button>
+        <button aria-current="false">6</button>
+        <button aria-current="true">8</button>
+      </span>
+      porzioni
+    </div>
+    <ul class="ingredienti">
+      <li><span>carne macinata mista (manzo e maiale)</span><span class="qty">600 g</span></li>
+      <li><span>salsiccia</span><span class="qty">200 g</span></li>
+      <li><span>passata di pomodoro</span><span class="qty">1000 ml</span></li>
+      <li><span>cipolla</span><span class="qty">1 pz</span></li>
+      <li><span>carota</span><span class="qty">1 pz</span></li>
+      <li><span>sedano</span><span class="qty">1 pz</span></li>
+      <li><span>vino rosso</span><span class="qty">150 ml</span></li>
+      <li><span>olio extravergine d'oliva</span><span class="qty">3 cucchiai</span></li>
+      <li><span>sale</span><span class="qty">q.b.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Procedimento</h2>
+    <p class="empty-state">Questa ricetta non ha ancora un procedimento scritto passo-passo — è tramandata a voce. Il racconto qui sopra e il video ne raccontano lo spirito; gli ingredienti bastano a chi la conosce già.</p>
+  </section>
+
+  <section>
+    <h2>Note</h2>
+    <div class="note">
+      <p>Il segreto è la cottura lunga a fuoco bassissimo, mai a bollore vivace. Se si asciuga troppo durante la cottura, aggiungere un mestolo di acqua calda, mai fredda.</p>
+      <p>Si conserva 3-4 giorni in frigo, ed è ancora più buono il giorno dopo. Congela bene fino a 3 mesi.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Nonna Anna · 17 ago 2026</span>
+    <span>Ricettario di famiglia</span>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var STORAGE_KEY = 'ricettario-tema';
+    var root = document.documentElement;
+    var buttons = document.querySelectorAll('[data-theme-choice]');
+
+    function currentChoice() {
+      var saved = localStorage.getItem(STORAGE_KEY);
+      return (saved === 'light' || saved === 'dark') ? saved : 'system';
+    }
+
+    function applyChoice(choice) {
+      if (choice === 'system') {
+        root.removeAttribute('data-theme');
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        root.setAttribute('data-theme', choice);
+        localStorage.setItem(STORAGE_KEY, choice);
+      }
+      buttons.forEach(function (btn) {
+        btn.setAttribute('aria-pressed', String(btn.dataset.themeChoice === choice));
+      });
+    }
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        applyChoice(btn.dataset.themeChoice);
+      });
+    });
+
+    applyChoice(currentChoice());
+  })();
+</script>

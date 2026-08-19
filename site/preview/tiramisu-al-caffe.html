@@ -1,0 +1,605 @@
+<title>Tiramisù al caffè</title>
+<script>
+  // Applica il tema salvato PRIMA del paint, per evitare un lampo del tema
+  // sbagliato. Priorità: scelta esplicita dell'utente (localStorage) >
+  // preferenza di sistema (solo per la primissima visita, nessun salvataggio).
+  (function () {
+    var saved = localStorage.getItem('ricettario-tema');
+    if (saved === 'light' || saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+  })();
+</script>
+<style>
+  /* ============ FONTS ============
+     Display: Fraunces (variable, ottica "SOFT" per un serif caldo da titolo
+     scritto a penna su ricettario, non da editoriale patinato) — caricato
+     come data URI per rispettare la CSP degli artifact.
+     Body: system serif stack leggibile a distanza da fornello.
+     Dati/etichette: monospace per quantità e tempi — tabular, leggibile
+     al volo mentre si cucina. */
+  @font-face {
+    font-family: 'Fraunces';
+    src: local('Fraunces');
+    font-weight: 300 700;
+  }
+
+  :root {
+    /* ---- Palette: quaderno di famiglia, non food-blog ----
+       Base: pergamena calda scurita verso il bruno, non crema pastello.
+       Accento: rosso conserva/pomodoro concentrato, bruciato, non terracotta. */
+    --paper: #efe6d3;
+    --paper-raised: #f8f1e2;
+    --ink: #2a2118;
+    --ink-soft: #5a4c3c;
+    --rule: #cdbe9e;
+    --accent: #a8341f;
+    --accent-ink: #faf1e6;
+    --tag-bg: #e2d4b4;
+    --tag-ink: #453a29;
+    --shadow: rgba(42, 33, 24, 0.18);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --paper: #221c15;
+      --paper-raised: #2b241b;
+      --ink: #ede3d0;
+      --ink-soft: #b9ab90;
+      --rule: #4a4028;
+      --accent: #e2694a;
+      --accent-ink: #241109;
+      --tag-bg: #3a3122;
+      --tag-ink: #d9cba8;
+      --shadow: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #221c15;
+    --paper-raised: #2b241b;
+    --ink: #ede3d0;
+    --ink-soft: #b9ab90;
+    --rule: #4a4028;
+    --accent: #e2694a;
+    --accent-ink: #241109;
+    --tag-bg: #3a3122;
+    --tag-ink: #d9cba8;
+    --shadow: rgba(0, 0, 0, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -5%, color-mix(in srgb, var(--accent) 7%, transparent), transparent),
+      radial-gradient(ellipse 700px 500px at 100% 10%, color-mix(in srgb, var(--ink) 4%, transparent), transparent);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, 'Iowan Old Style', serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: clamp(20px, 5vw, 56px) clamp(16px, 5vw, 28px) 80px;
+  }
+
+  /* ---------- Meta strip: repo / autore, contesto "da dove viene" ---------- */
+  .meta-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 22px;
+  }
+  .meta-strip a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--rule); }
+
+  /* ---------- Topbar: navigazione tra le ricette + selettore tema ---------- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px clamp(16px, 5vw, 28px);
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .topbar-nav {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    font-family: var(--sans);
+    font-size: 0.82rem;
+  }
+  .topbar-nav a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 6px 11px;
+    border-radius: 7px;
+  }
+  .topbar-nav a:hover { background: var(--tag-bg); color: var(--tag-ink); }
+  .topbar-nav a[aria-current="page"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+  .theme-switch {
+    display: inline-flex;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 2px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .theme-switch button {
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    line-height: 1;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 6px 9px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .theme-switch button:hover { background: var(--tag-bg); }
+  .theme-switch button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .theme-switch button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ---------- Hero: titolo + tag + cifre chiave ---------- */
+  .hero { margin-bottom: 34px; }
+
+  .kicker {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(2.1rem, 6vw, 3.1rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 16px;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 26px;
+  }
+  .tag {
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: var(--tag-bg);
+    color: var(--tag-ink);
+    white-space: nowrap;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .stat {
+    background: var(--paper-raised);
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .stat dt {
+    font-family: var(--sans);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 4px;
+  }
+  .stat dd {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  /* ---------- Cover image ---------- */
+  .cover {
+    margin: 28px 0 8px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 10px 28px -14px var(--shadow);
+    aspect-ratio: 16/10;
+    background:
+      linear-gradient(155deg, color-mix(in srgb, var(--accent) 30%, var(--paper-raised)), var(--paper-raised) 60%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .cover::after {
+    content: "foto copertina · storage esterno";
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    color: var(--accent-ink);
+    background: color-mix(in srgb, var(--ink) 55%, transparent);
+    padding: 5px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.03em;
+  }
+
+  /* ---------- Sections ---------- */
+  section { margin-top: 46px; }
+
+  h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0 0 18px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  h2::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+    transform: translateY(-4px);
+  }
+
+  /* ---------- Ingredienti ---------- */
+  .servings-toggle {
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .servings-toggle .pill-group {
+    display: inline-flex;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .servings-toggle button {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 5px 12px;
+    cursor: default;
+  }
+  .servings-toggle button[aria-current="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+
+  ul.ingredienti {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  ul.ingredienti li {
+    background: var(--paper-raised);
+    padding: 11px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 0.98rem;
+  }
+  ul.ingredienti .qty {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 0.92rem;
+  }
+
+  /* ---------- Passi ---------- */
+  ol.passi {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  ol.passi li {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .step-num {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--paper-raised);
+    border: 1.5px solid var(--rule);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-body p {
+    margin: 0 0 8px;
+    font-size: 1.02rem;
+  }
+  .step-photo {
+    margin-top: 8px;
+    border-radius: 10px;
+    aspect-ratio: 16/9;
+    max-width: 320px;
+    background: linear-gradient(155deg, color-mix(in srgb, var(--accent) 18%, var(--paper-raised)), var(--paper-raised));
+    border: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+  }
+  .step-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    background: var(--tag-bg);
+    color: var(--tag-ink);
+    padding: 4px 10px;
+    border-radius: 999px;
+    width: fit-content;
+  }
+
+  /* ---------- Note ---------- */
+  .note {
+    background: var(--paper-raised);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    font-size: 0.96rem;
+    color: var(--ink-soft);
+  }
+  .note p { margin: 0 0 10px; }
+  .note p:last-child { margin-bottom: 0; }
+  .note strong { color: var(--ink); }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 480px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    .step-photo { max-width: 100%; }
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .cover, .meta-strip { display: none; }
+  }
+</style>
+
+<div class="topbar">
+  <nav class="topbar-nav" aria-label="Ricette di esempio">
+    <a href="#" aria-current="page">Tiramisù al caffè</a>
+    <a href="ragu-della-domenica.html">Ragù della domenica</a>
+    <a href="bruschette-pomodoro-basilico.html">Bruschette</a>
+  </nav>
+  <div class="theme-switch" role="group" aria-label="Tema colore">
+    <button type="button" data-theme-choice="light" aria-pressed="false" title="Tema chiaro">☀️</button>
+    <button type="button" data-theme-choice="dark" aria-pressed="false" title="Tema scuro">🌙</button>
+    <button type="button" data-theme-choice="system" aria-pressed="false" title="Segui il sistema">🖥️</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="meta-strip">
+    <span>content/ricette/tiramisu-al-caffe.md</span>
+    <span>bozza di stile · non definitivo</span>
+  </div>
+
+  <div class="hero">
+    <p class="kicker">Dolce · Senza cottura</p>
+    <h1>Tiramisù al caffè</h1>
+    <div class="tags">
+      <span class="tag">dolce</span>
+      <span class="tag">senza cottura</span>
+      <span class="tag">tradizione di famiglia</span>
+      <span class="tag">festivo</span>
+    </div>
+    <dl class="stat-row">
+      <div class="stat"><dt>Prep.</dt><dd>30 min</dd></div>
+      <div class="stat"><dt>Cottura</dt><dd>—</dd></div>
+      <div class="stat"><dt>Porzioni</dt><dd>6</dd></div>
+      <div class="stat"><dt>Difficoltà</dt><dd>Facile</dd></div>
+    </dl>
+  </div>
+
+  <div class="cover"></div>
+
+  <section>
+    <h2>Ingredienti</h2>
+    <div class="servings-toggle">
+      per
+      <span class="pill-group">
+        <button aria-current="false">4</button>
+        <button aria-current="true">6</button>
+        <button aria-current="false">8</button>
+      </span>
+      porzioni
+    </div>
+    <ul class="ingredienti">
+      <li><span>savoiardi</span><span class="qty">300 g</span></li>
+      <li><span>mascarpone</span><span class="qty">500 g</span></li>
+      <li><span>uova</span><span class="qty">4 pz</span></li>
+      <li><span>zucchero</span><span class="qty">120 g</span></li>
+      <li><span>caffè espresso</span><span class="qty">300 ml</span></li>
+      <li><span>cacao amaro in polvere</span><span class="qty">20 g</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Procedimento</h2>
+    <ol class="passi">
+      <li>
+        <span class="step-num">1</span>
+        <div class="step-body">
+          <p>Separare i tuorli dagli albumi. Montare i tuorli con lo zucchero fino a ottenere un composto chiaro e spumoso.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <div class="step-body">
+          <p>Incorporare il mascarpone ai tuorli montati, mescolando delicatamente dal basso verso l'alto.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <div class="step-body">
+          <p>Montare gli albumi a neve ferma e unirli al composto, sempre con movimenti delicati per non smontare il tutto.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">4</span>
+        <div class="step-body">
+          <p>Inzuppare rapidamente i savoiardi nel caffè freddo (senza farli inzuppare troppo, altrimenti si sfaldano) e formare il primo strato sul fondo della teglia.</p>
+          <div class="step-photo">foto passo 4</div>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">5</span>
+        <div class="step-body">
+          <p>Coprire con uno strato di crema al mascarpone. Ripetere con un secondo strato di savoiardi e un secondo strato di crema.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">6</span>
+        <div class="step-body">
+          <p>Livellare la superficie e lasciare riposare in frigorifero.</p>
+          <span class="step-timer">⏱ 4 h di riposo</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">7</span>
+        <div class="step-body">
+          <p>Spolverare con cacao amaro poco prima di servire.</p>
+          <div class="step-photo">foto finale</div>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Note</h2>
+    <div class="note">
+      <p>Ricetta di casa, quella delle domeniche. Con le uova crude: se è per bambini o donne in gravidanza, meglio una versione pastorizzata della crema.</p>
+      <p><strong>Variante:</strong> si può fare anche senza uova, montando solo panna e mascarpone — più leggero ma meno "vero".</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Mary · 17 ago 2026</span>
+    <span>Ricettario di famiglia</span>
+  </footer>
+
+</div>
+
+<script>
+  // Selettore tema: chiaro / scuro / sistema.
+  // - "sistema" = nessuna scelta salvata → segue prefers-color-scheme (comportamento di default).
+  // - "chiaro"/"scuro" = scelta esplicita, salvata e riapplicata alle visite successive.
+  (function () {
+    var STORAGE_KEY = 'ricettario-tema';
+    var root = document.documentElement;
+    var buttons = document.querySelectorAll('[data-theme-choice]');
+
+    function currentChoice() {
+      var saved = localStorage.getItem(STORAGE_KEY);
+      return (saved === 'light' || saved === 'dark') ? saved : 'system';
+    }
+
+    function applyChoice(choice) {
+      if (choice === 'system') {
+        root.removeAttribute('data-theme');
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        root.setAttribute('data-theme', choice);
+        localStorage.setItem(STORAGE_KEY, choice);
+      }
+      buttons.forEach(function (btn) {
+        btn.setAttribute('aria-pressed', String(btn.dataset.themeChoice === choice));
+      });
+    }
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        applyChoice(btn.dataset.themeChoice);
+      });
+    });
+
+    applyChoice(currentChoice());
+  })();
+</script>
