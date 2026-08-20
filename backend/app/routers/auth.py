@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.auth import authenticate, create_session
+from app.config import settings
 from app.schemas.auth import LoginRequest, LoginResponse
 
 router = APIRouter()
@@ -15,4 +16,9 @@ def login(payload: LoginRequest) -> LoginResponse:
             detail={"code": "unauthorized", "detail": "Credenziali non valide"},
         )
     token, scade_alle = create_session(profilo)
-    return LoginResponse(token=token, nome_autore=profilo.nome_autore, scade_alle=scade_alle)
+    return LoginResponse(
+        token=token,
+        nome_autore=profilo.nome_autore,
+        scade_alle=scade_alle,
+        dev_tools_abilitati=settings.local_dev_tools_enabled,
+    )

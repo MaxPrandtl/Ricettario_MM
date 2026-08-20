@@ -40,7 +40,10 @@ permalink: "/nuova-ricetta/"
      ============================================================ -->
 <section id="recipe-view" hidden>
   <p class="editor-session">Accesso come <strong id="session-author"></strong>
-    <button type="button" id="logout-btn" class="btn btn--ghost btn--small">Esci</button></p>
+    <button type="button" id="logout-btn" class="btn btn--ghost btn--small">Esci</button>
+    <button type="button" id="pull-locale-btn" class="btn btn--ghost btn--small" hidden>⟳ Aggiorna sito locale</button>
+  </p>
+  <p id="pull-locale-esito" class="editor-note" role="status" hidden></p>
 
   <form id="recipe-form" novalidate>
 
@@ -189,20 +192,18 @@ permalink: "/nuova-ricetta/"
   <dl class="success-summary" id="success-summary"></dl>
   <p><a id="success-github-link" href="#" target="_blank" rel="noopener" class="btn btn--primary">Vedi il file su GitHub</a></p>
   <p><a href="/nuova-ricetta/" class="btn btn--ghost">Inserisci un'altra ricetta</a></p>
-  <p class="editor-note">La ricetta è già su GitHub, ma non ancora visibile in questo sito locale: serve un <code>git pull</code> manuale (e un rebuild) per vederla qui.</p>
+  <p class="editor-note">La ricetta è già su GitHub, ma non ancora visibile in questo sito locale: usa "⟳ Aggiorna sito locale" qui sopra (se disponibile) o un <code>git pull</code> manuale (e un rebuild) per vederla qui.</p>
 </section>
 
 <!-- ============================================================
-     Anteprima: lista campi leggibile, non una riproduzione dello
-     stile grafico completo della pagina pubblica (per non dover
-     mantenere sincronizzate due implementazioni dello stesso
-     template ogni volta che lo stile della pagina ricetta cambia).
+     Anteprima: overlay di stato transitorio mentre il backend genera
+     la pagina vera (build Eleventy reale, stesso HTML/CSS del sito
+     pubblico) — l'anteprima si apre poi in una scheda a parte, questo
+     overlay si chiude da solo appena la scheda si apre.
      ============================================================ -->
 <div id="anteprima-modal" class="anteprima-modal" hidden>
   <div class="anteprima-content">
-    <button type="button" class="btn btn--icon" id="anteprima-chiudi" aria-label="Chiudi anteprima">✕</button>
-    <h2 id="anteprima-titolo"></h2>
-    <dl class="success-summary" id="anteprima-corpo"></dl>
+    <p id="anteprima-stato">Generazione anteprima…</p>
   </div>
 </div>
 

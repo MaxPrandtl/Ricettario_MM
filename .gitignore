@@ -20,6 +20,10 @@ node_modules/
 _site/
 dist/
 
+# File temporaneo di anteprima (backend/app/routers/dev_tools.py) — mai una
+# ricetta vera, rigenerato ad ogni "Anteprima" nell'editor, non va committato
+content/_anteprima/
+
 # Log di sviluppo locale (server avviati in background durante i test)
 *.log
 

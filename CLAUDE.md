@@ -68,10 +68,10 @@ PWA/stampa.
   `POST /recipes/{id}/pubblica` sposta bozza→pubblicata (leggi, scrivi altrove,
   cancella l'originale). Due bottoni nel form ("Salva bozza"/"Pubblica"), il
   terzo diventa "Salva modifiche" quando si modifica una ricetta già pubblicata.
-- **Anteprima**: bottone che mostra i dati del form correnti in una lista
-  leggibile (non una riproduzione dello stile grafico della pagina pubblica,
-  per non dover mantenere sincronizzate due implementazioni dello stesso
-  template).
+- **Anteprima**: bottone che genera una vera build Eleventy della ricetta in
+  corso di compilazione e apre il risultato in una nuova scheda — stesso
+  HTML/CSS/layout del sito reale, zero riproduzione approssimata (vedi
+  sezione "Strumenti di sviluppo locale (dev-tools)" sotto per i dettagli).
 - **Difficoltà**: scala numerica 1-5 a step 0.5 (non più facile/medio/
   difficile), mostrata come icone "padella" 🍳 piene/mezza/vuote (filtro
   Nunjucks `difficoltaIcone`, la mezza resa via CSS non Unicode). Filtro di
@@ -107,6 +107,32 @@ ora): backend FastAPI su `http://localhost:8000`, sito Eleventy su
 `http://localhost:8080`. Il backend ha CORS abilitato solo per quell'origin
 esplicita (non wildcard, dato che si manda `Authorization: Bearer`) — va
 rivisto quando si fa il deploy.
+
+**Strumenti di sviluppo locale (dev-tools)**: due funzionalità dell'editor che
+eseguono comandi di sistema (`git`, `npx`) dal backend, dietro il flag
+`LOCAL_DEV_TOOLS_ENABLED` (default `false` — se assente/`false`, le route
+`/dev/*` non esistono nemmeno, `backend/app/routers/dev_tools.py`):
+- **"⟳ Aggiorna sito locale"** (`POST /dev/pull`): esegue `git pull` sulla
+  working copy — serve perché il dev server Eleventy (`npm run dev`) non
+  osserva `content/` in automatico (nessun `addWatchTarget`, i file ricetta
+  sono letti a mano via `fs.readFileSync`, fuori dal grafo di dipendenze che
+  Eleventy traccia da solo). Mai operazioni distruttive se il pull fallisce
+  (niente `--force`/`reset --hard`).
+- **Anteprima reale** (`POST /dev/anteprima`): scrive i dati del form in
+  `content/_anteprima/current.md` (gitignored, mai una ricetta vera) con lo
+  stesso `render_recipe_markdown` usato per create/update, poi invoca `npx
+  eleventy` one-off (build normale, non `--watch`) puntata alla stessa
+  `_site/` già servita dal dev server. La pagina fissa `/anteprima/`
+  (`site/pages/anteprima.njk` + `anteprima.11tydata.js`) riusa **lo stesso
+  layout `layouts/ricetta.njk`** della pagina pubblica — zero duplicazione di
+  markup tra sito e anteprima. L'editor apre l'URL risultante in una nuova
+  scheda (non un iframe/modal, per evitare problemi di origine incrociata
+  tra le porte 8000/8080).
+
+Nota da rivedere al deploy: `/anteprima/` esisterà anche in un'eventuale
+build di produzione futura (il file sorgente è gitignored quindi in un
+checkout CI pulito la pagina renderizza solo il suo placeholder vuoto —
+innocuo, ma da escludere esplicitamente se si vuole essere rigorosi).
 
 **Prossimo passo:** deploy di backend e sito (Render/Railway per il backend,
 GitHub Pages per il sito, come da brief) — finché resta tutto locale, l'editor

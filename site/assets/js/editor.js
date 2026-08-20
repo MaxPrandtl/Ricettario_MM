@@ -60,9 +60,11 @@
         session = {
           token: res.body.token,
           nomeAutore: res.body.nome_autore,
-          scadeAlle: res.body.scade_alle
+          scadeAlle: res.body.scade_alle,
+          devToolsAbilitati: !!res.body.dev_tools_abilitati
         };
         document.getElementById('session-author').textContent = session.nomeAutore;
+        document.getElementById('pull-locale-btn').hidden = !session.devToolsAbilitati;
 
         if (modificaId) {
           caricaRicettaEsistente(modificaId);
@@ -569,6 +571,10 @@
       errorEl.textContent = 'Errore interno del server durante il salvataggio: ' + detail.detail;
     } else if (status === 502 && detail && detail.code === 'github_error') {
       errorEl.textContent = 'Errore comunicando con GitHub: ' + detail.detail + '. Riprova tra poco.';
+    } else if (status === 502 && detail && (detail.code === 'build_failed' || detail.code === 'build_timeout')) {
+      errorEl.textContent = 'Errore nella generazione dell\'anteprima: ' + detail.detail;
+    } else if (status === 502 && detail && detail.code === 'npx_not_found') {
+      errorEl.textContent = 'Comando "npx" non trovato: il backend non riesce ad avviare la build Eleventy per l\'anteprima.';
     } else {
       errorEl.textContent = 'Errore imprevisto (HTTP ' + status + ').';
     }
@@ -602,39 +608,84 @@
   }
 
   // ---------------------------------------------------------------
-  // Anteprima — lista campi leggibile, riusa raccogliPayload() già
-  // esistente senza modificarlo. Non riproduce lo stile grafico
-  // completo della pagina pubblica, per non dover mantenere
-  // sincronizzate due implementazioni dello stesso template.
+  // Anteprima — solo se il backend ha i dev-tools abilitati (endpoint
+  // /dev/anteprima). Riusa raccogliPayload() già esistente, invariato.
+  // Il backend genera l'HTML con una build Eleventy vera (stesso layout/
+  // CSS del sito reale, zero duplicazione di markup qui) e restituisce
+  // l'URL della pagina, aperta in una nuova scheda — niente iframe/modal
+  // con i dati dentro, evita ogni problema di origine incrociata tra
+  // :8000 (backend) e :8080 (sito) ed è garantito identico al sito vero.
   // ---------------------------------------------------------------
-  function formatMinutiPerAnteprima(min) {
-    if (!min || min <= 0) return '—';
-    if (min < 60) return min + ' min';
-    var ore = Math.floor(min / 60);
-    var resto = min % 60;
-    return resto === 0 ? ore + ' h' : ore + ' h ' + resto;
+  function mostraAnteprima() {
+    if (!session || !session.devToolsAbilitati) return; // bottone nascosto in questo caso, difensivo
+    var modal = document.getElementById('anteprima-modal');
+    var stato = document.getElementById('anteprima-stato');
+    var btn = document.getElementById('anteprima-btn');
+    var errorEl = document.getElementById('submit-error');
+
+    stato.textContent = 'Generazione anteprima…';
+    modal.hidden = false;
+    btn.disabled = true;
+
+    fetch(API_BASE + '/dev/anteprima', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
+      body: JSON.stringify(raccogliPayload())
+    })
+      .then(rispostaJson)
+      .then(function (res) {
+        modal.hidden = true;
+        btn.disabled = false;
+        if (res.status === 200) {
+          window.open(res.body.url, '_blank');
+        } else {
+          errorEl.hidden = true; // reset, poi mostraErroreServer lo riapre se serve
+          mostraErroreServer(res.status, res.body, errorEl);
+        }
+      })
+      .catch(function () {
+        modal.hidden = true;
+        btn.disabled = false;
+        errorEl.textContent = 'Impossibile contattare il server. Il backend è avviato su ' + API_BASE + '?';
+        errorEl.hidden = false;
+      });
   }
 
-  function mostraAnteprima() {
-    var payload = raccogliPayload();
-    document.getElementById('anteprima-titolo').textContent = payload.titolo || '(senza titolo)';
-    var righe = [
-      ['Tempo preparazione', formatMinutiPerAnteprima(payload.tempo_preparazione_min)],
-      ['Tempo cottura', formatMinutiPerAnteprima(payload.tempo_cottura_min)],
-      ['Tempo totale', formatMinutiPerAnteprima(payload.tempo_preparazione_min + payload.tempo_cottura_min)],
-      ['Porzioni base', payload.porzioni_base],
-      ['Difficoltà', payload.difficolta + ' / 5'],
-      ['Categorie', payload.categorie.join(', ') || '—'],
-      ['Strumenti', payload.strumenti.join(', ') || '—'],
-      ['Ingredienti', payload.ingredienti.map(function (i) {
-        return i.nome + ': ' + (i.quantita === null ? 'q.b.' : i.quantita + ' ' + i.unita);
-      }).join('; ') || '—'],
-      ['Passi', payload.passi.length + ' passo/i']
-    ];
-    document.getElementById('anteprima-corpo').innerHTML = righe.map(function (r) {
-      return '<dt>' + escapeHtml(String(r[0])) + '</dt><dd>' + escapeHtml(String(r[1])) + '</dd>';
-    }).join('');
-    document.getElementById('anteprima-modal').hidden = false;
+  // ---------------------------------------------------------------
+  // Aggiorna sito locale — esegue git pull sulla working copy tramite il
+  // backend (solo se dev-tools abilitati), così il sito in npm run dev
+  // (che non osserva content/ in automatico) vede le ricette appena
+  // salvate senza un comando manuale.
+  // ---------------------------------------------------------------
+  function aggiornaSitoLocale() {
+    var btn = document.getElementById('pull-locale-btn');
+    var esitoEl = document.getElementById('pull-locale-esito');
+    btn.disabled = true;
+    esitoEl.hidden = true;
+
+    fetch(API_BASE + '/dev/pull', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + session.token }
+    })
+      .then(rispostaJson)
+      .then(function (res) {
+        btn.disabled = false;
+        if (res.status === 200) {
+          esitoEl.textContent = res.body.aggiornato
+            ? 'Sito locale aggiornato: ' + res.body.dettaglio
+            : 'Il sito locale era già aggiornato.';
+        } else {
+          var detail = res.body && res.body.detail;
+          esitoEl.textContent = 'Errore durante l\'aggiornamento: ' +
+            ((detail && detail.detail) || 'errore imprevisto (HTTP ' + res.status + ')');
+        }
+        esitoEl.hidden = false;
+      })
+      .catch(function () {
+        btn.disabled = false;
+        esitoEl.textContent = 'Impossibile contattare il server. Il backend è avviato su ' + API_BASE + '?';
+        esitoEl.hidden = false;
+      });
   }
 
   // ---------------------------------------------------------------
@@ -646,9 +697,7 @@
   document.getElementById('add-ingrediente').addEventListener('click', function () { addIngredienteRow(); });
   document.getElementById('add-passo').addEventListener('click', function () { addPassoRow(); });
   document.getElementById('anteprima-btn').addEventListener('click', mostraAnteprima);
-  document.getElementById('anteprima-chiudi').addEventListener('click', function () {
-    document.getElementById('anteprima-modal').hidden = true;
-  });
+  document.getElementById('pull-locale-btn').addEventListener('click', aggiornaSitoLocale);
   wireScalabileToggle();
 
   if (!modificaId) {

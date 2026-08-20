@@ -2,6 +2,7 @@ import fs from "node:fs";
 import yaml from "js-yaml";
 import { scalingAttrs } from "./site/_includes/macros/scaling-helpers.js";
 import { loadRicette } from "./site/_includes/macros/load-recipes.js";
+import { loadAnteprima } from "./site/_includes/macros/load-anteprima.js";
 
 export default function (eleventyConfig) {
   // Asset statici copiati 1:1 in _site/assets/...
@@ -13,6 +14,12 @@ export default function (eleventyConfig) {
   // sotto `input` — non fa una scansione filesystem indipendente. Lette a
   // mano con gray-matter, vedi site/_includes/macros/load-recipes.js.
   eleventyConfig.addGlobalData("ricette", () => loadRicette());
+
+  // Anteprima ricetta (site/pages/anteprima.njk): legge un file temporaneo
+  // isolato scritto dal backend in modalità sviluppo locale, mai una ricetta
+  // vera — vedi backend/app/routers/dev_tools.py e content/_anteprima/
+  // (esclusa da git). Ritorna un placeholder se il file non esiste ancora.
+  eleventyConfig.addGlobalData("anteprimaRicetta", () => loadAnteprima());
 
   // Tassonomie canoniche come dati globali — vivono in content/, non in una
   // cartella _data/ di Eleventy, quindi vanno lette a mano con js-yaml.

@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     github_token: str
     github_repo: str
     content_dir: str = "../content"
+    local_dev_tools_enabled: bool = False  # git pull + anteprima via build Eleventy —
+    # SOLO sviluppo locale, mai in produzione. Vedi routers/dev_tools.py.
 
     @property
     def content_path(self) -> Path:

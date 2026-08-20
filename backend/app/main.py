@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings  # importato subito: fail-fast se .env è incompleto
-from app.routers import auth, recipes
+from app.routers import auth, dev_tools, recipes
 
 app = FastAPI(title="Ricettario — backend")
 
@@ -18,6 +18,11 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(recipes.router)
+if settings.local_dev_tools_enabled:
+    # Solo sviluppo locale: git pull + anteprima via build Eleventy reale.
+    # Se il flag è spento (default), queste route non esistono nemmeno —
+    # niente traccia in /docs, nessun endpoint da disattivare al deploy.
+    app.include_router(dev_tools.router)
 
 
 @app.get("/health")

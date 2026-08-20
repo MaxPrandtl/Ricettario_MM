@@ -12,3 +12,6 @@ class LoginResponse(BaseModel):
     token: str
     nome_autore: str
     scade_alle: datetime
+    dev_tools_abilitati: bool = False  # editor: mostra/nasconde i bottoni
+    # "Aggiorna sito locale"/anteprima-reale in base a questo, invece di
+    # lasciarli lì rotti se il backend non ha il flag attivo.
