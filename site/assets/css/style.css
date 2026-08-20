@@ -57,6 +57,20 @@
 
 * { box-sizing: border-box; }
 
+/* Garantisce che l'attributo hidden vinca SEMPRE, qualunque sia la classe
+   dell'elemento. Senza questa regola, qualunque classe che dichiara `display`
+   esplicito (es. .btn, .scaglioni-table, il bare selector `label`) ha la
+   stessa origine "autore" del default browser per [hidden] e lo sovrascrive
+   — un elemento nascosto via JS (`el.hidden = true`) resta visibile lo
+   stesso. Bug reale riscontrato due volte (modal anteprima, bottone "Salva
+   bozza" durante la modifica di una ricetta già pubblicata) prima di questa
+   regola globale, che li risolve tutti in un colpo solo. Va prima di ogni
+   altra regola per essere facilmente sovrascrivibile da [hidden] su
+   selettori più specifici, se mai servisse un'eccezione. */
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   background: var(--paper);
@@ -1011,13 +1025,6 @@ textarea:focus-visible {
   align-items: center;
   justify-content: center;
   padding: 20px;
-}
-/* [hidden] ha la stessa specificità di .anteprima-modal (0,1,0): senza
-   questa regola esplicita, "display: flex" sopra vince sull'attributo
-   nativo hidden e il modal resta visibile anche quando dovrebbe sparire —
-   bug reale riscontrato: popup vuoto sopra il form di login. */
-.anteprima-modal[hidden] {
-  display: none;
 }
 .anteprima-content {
   position: relative;

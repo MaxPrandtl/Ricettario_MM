@@ -623,6 +623,18 @@
     var btn = document.getElementById('anteprima-btn');
     var errorEl = document.getElementById('submit-error');
 
+    // La scheda va aperta QUI, in modo sincrono dentro il gestore di click —
+    // se si aspettasse la risposta della fetch (che include una build
+    // Eleventy completa, non istantanea), il browser perderebbe la "user
+    // activation" del click e bloccherebbe il popup, o in alcuni browser
+    // navigherebbe la pagina corrente invece di aprirne una nuova (bug reale
+    // riscontrato: cliccando Anteprima si usciva dall'editor). La scheda
+    // parte vuota e viene indirizzata all'URL vero non appena pronto.
+    var finestra = window.open('', '_blank');
+    if (finestra) {
+      finestra.document.write('<p style="font-family:sans-serif;padding:2rem;">Generazione anteprima…</p>');
+    }
+
     stato.textContent = 'Generazione anteprima…';
     modal.hidden = false;
     btn.disabled = true;
@@ -637,13 +649,22 @@
         modal.hidden = true;
         btn.disabled = false;
         if (res.status === 200) {
-          window.open(res.body.url, '_blank');
+          if (finestra) {
+            finestra.location.href = res.body.url;
+          } else {
+            // Popup bloccato anche nel tentativo sincrono (impostazioni
+            // browser molto restrittive): fallback sulla pagina corrente,
+            // meglio di un'anteprima generata ma introvabile.
+            window.location.href = res.body.url;
+          }
         } else {
+          if (finestra) finestra.close();
           errorEl.hidden = true; // reset, poi mostraErroreServer lo riapre se serve
           mostraErroreServer(res.status, res.body, errorEl);
         }
       })
       .catch(function () {
+        if (finestra) finestra.close();
         modal.hidden = true;
         btn.disabled = false;
         errorEl.textContent = 'Impossibile contattare il server. Il backend è avviato su ' + API_BASE + '?';
