@@ -14,7 +14,7 @@ racconto: null
 strumenti: [bilancia]
 scalabile: false
 ingredienti:
-  - nome: "Farina"
+  - nome: "Farina tipo 0"
     quantita: 1200
     unita: g
     scala: fisso
@@ -40,8 +40,32 @@ ingredienti:
     scala: fisso
 passi:
   - numero: 1
-    testo: "prova"
+    testo: "Pesare tutti gli ingredienti e disporli sul tavolo di lavoro"
     foto: null
     timer_sec: null
+  - numero: 2
+    testo: "In una ciotola capiente, inserire tutta la farina e creare una fontanella al centro nella quale inserire acqua e uova."
+    foto: null
+    timer_sec: null
+  - numero: 3
+    testo: "Ai bordi della fontanella aggiungere lievito di birra secco e sale."
+    foto: null
+    timer_sec: null
+  - numero: 4
+    testo: "Sbattere con i rebbi della forchetta le uova insieme all'acqua e mano a mano incorporare gli ingredienti secchi."
+    foto: null
+    timer_sec: null
+  - numero: 5
+    testo: "Quando gli ingredienti sono mescolati tra di loro, mettere da parte la forchetta e passare alle mani: impastare fino ad ottenere un impasto omogeneo."
+    foto: null
+    timer_sec: null
+  - numero: 6
+    testo: "a questo punto va incorporato l'olio all'impasto, fino al completo assorbimento.\nTrucchetto di Mary: con le mani oleate, livellare il tutto per creare un film impermeabile ;)"
+    foto: null
+    timer_sec: null
+  - numero: 7
+    testo: "Coprire con coperchio o pellicola e lasciare lievitare per circa 1 ora, o almeno fino al raddoppio a temperatura ambiente."
+    foto: null
+    timer_sec: 3600
 ---
-
+N.B.: si tratta di una pietanza che viene accompagnata da salumi, nel caso cui si volesse consumare da sola, aumentare di 5g la quantità di sale
