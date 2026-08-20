@@ -35,3 +35,6 @@ attrezzi_specifici:
   - mandolina
   - griglia/bistecchiera
   - stampi particolari (es. plumcake, savarin, ciambella)
+
+personalizzati:  # valori aggiunti dall'editor, non pre-organizzati a mano
+  - bilancia
