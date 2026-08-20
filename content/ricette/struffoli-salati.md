@@ -80,8 +80,19 @@ passi:
     foto: null
     timer_sec: null
   - numero: 11
-    testo: "Nel frattempo"
+    testo: "Nel frattempo, in una pentola o in una padella dai bordi alti, mettere a riscaldare l'olio (io ho utilizzato quello di oliva, ma va bene anche quello di semi);"
+    foto: null
+    timer_sec: null
+  - numero: 12
+    testo: "Quando l'olio avrà raggiunto la temperatura ideale (potete fare la prova con una pallina di impasto oppure con uno stuzzicadenti di legno), immergere gli struffoli e farli dorare per bene da entrambi i lati."
+    foto: null
+    timer_sec: null
+  - numero: 13
+    testo: "Scolare in una terrina coperta da carta assorbente e servire."
     foto: null
     timer_sec: null
 ---
-N.B.: si tratta di una pietanza che viene accompagnata da salumi, nel caso cui si volesse consumare da sola, aumentare di 5 g la quantità di sale
+N.B.: si tratta di una pietanza che viene accompagnata da salumi, nel caso cui si volesse consumare da sola, aumentare di 5 g la quantità di sale;
+
+CONSIGLI: questi struffoli sono ottimi se mangiati tiepidi ed accompagnati da salumi e formaggi stagionati; 
+se vi dovessero avanzare ( ne dubito :P), sono buoni anche il giorno seguente, riscaldandoli in friggitrice ad aria.
