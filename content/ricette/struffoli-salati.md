@@ -8,7 +8,7 @@ porzioni_base: 10
 difficolta: 2
 autore: "Mary"
 data_inserimento: 2026-08-20
-immagine_copertina: null
+immagine_copertina: "https://pub-6dab08c73fe74fbe8b00e4bd8e323675.r2.dev/struffoli_salati/IMG_20260820_133049.jpg"
 video: null
 racconto: null
 strumenti: [bilancia]
@@ -68,4 +68,4 @@ passi:
     foto: null
     timer_sec: 3600
 ---
-N.B.: si tratta di una pietanza che viene accompagnata da salumi, nel caso cui si volesse consumare da sola, aumentare di 5g la quantità di sale
+N.B.: si tratta di una pietanza che viene accompagnata da salumi, nel caso cui si volesse consumare da sola, aumentare di 5 g la quantità di sale
